@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SKYSCRAPER — Digital Architectural Experience | Bring home to quality</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="assets/logofiles/logoskyscraper.svg">
+</head>
+<body id="top">
+
+  <!-- ============================================================
+       NAVIGATION
+       ============================================================ -->
+  <header class="nav" id="mainNav" role="banner">
+    <a href="#top" class="nav__brand" aria-label="Skyscraper Home">
+      <img src="assets/logofiles/skyscraperheader.svg" alt="Skyscraper" class="nav__logo">
+    </a>
+
+    <nav class="nav__links" aria-label="Main Navigation">
+      <a href="#about" class="nav__link">About</a>
+      <a href="#philosophy" class="nav__link">Philosophy</a>
+      <a href="#sustainability" class="nav__link">Sustainability</a>
+      <a href="#archScrollSection" class="nav__link">Experience</a>
+      <a href="#deonarayan" class="nav__link">Deonarayan Estate</a>
+      <a href="#plans" class="nav__link">Plans</a>
+      <a href="#specifications" class="nav__link">Specifications</a>
+      <a href="#leaderboard" class="nav__link">Leadership</a>
+      <a href="#location" class="nav__link">Location</a>
+      <a href="#anima" class="nav__link">Portfolio</a>
+      <a href="#enquiry" class="nav__cta">Enquire</a>
+    </nav>
+
+    <button type="button" class="nav__menu-btn" id="navMenuBtn" aria-label="Toggle Menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <!-- Mobile Overlay Navigation -->
+  <div class="nav__overlay" id="navOverlay" aria-hidden="true">
+    <a href="#about" class="nav__overlay-link">About</a>
+    <a href="#philosophy" class="nav__overlay-link">Philosophy</a>
+    <a href="#sustainability" class="nav__overlay-link">Sustainability & Legacy</a>
+    <a href="#archScrollSection" class="nav__overlay-link">35-Second Walkthrough</a>
+    <a href="#deonarayan" class="nav__overlay-link">Deonarayan Estate</a>
+    <a href="#plans" class="nav__overlay-link">Architectural Plans</a>
+    <a href="#specifications" class="nav__overlay-link">Material Specifications & Film</a>
+    <a href="#leaderboard" class="nav__overlay-link">Executive Leadership</a>
+    <a href="#location" class="nav__overlay-link">Site & Office</a>
+    <a href="#anima" class="nav__overlay-link">Anima Sky (Sold Out)</a>
+    <a href="#enquiry" class="nav__overlay-link" style="color: var(--accent-gold-light); margin-top: 1.5rem;">Start a Conversation</a>
+  </div>
+
+  <main id="content">
+
+    <!-- ============================================================
+         PHASE 05 — CINEMATIC OPENING (HERO FILM)
+         No headlines, no CTA, pure cinematic storytelling.
+         Permanent muted playback per browser standards and specification.
+         ============================================================ -->
+    <section class="hero-film" id="heroFilm" aria-label="Cinematic Film Opening">
+      <div class="hero-film__loader" id="heroLoader">
+        <div class="hero-film__loader-bar"></div>
+      </div>
+
+      <video 
+        class="hero-film__video" 
+        id="heroVideo" 
+        autoplay 
+        muted 
+        playsinline
+        preload="auto"
+        poster="assets/skyscraper-hero-bg-dark-16x9.webp">
+        <source src="cinematic_opening_film.mp4" type="video/mp4">
+        <source src="assets/hero_video.mp4" type="video/mp4">
+        Your browser does not support HTML5 video streaming.
+      </video>
+
+      <div class="hero-film__overlay" id="heroOverlay"></div>
+
+      <div class="hero-film__controls">
+        <button type="button" class="hero-film__btn" id="heroReplayBtn">Replay Film</button>
+        <a href="#brandResolution" class="hero-film__btn">Explore</a>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 06 — BRAND RESOLUTION & LOGO/HERO SECTION
+         Signature presentation: SKYSCRAPER / Bring home to quality
+         Anchored by 16:9 Architectural Render (skyscraper-hero-bg-dark-16x9)
+         ============================================================ -->
+    <section class="brand-resolve" id="brandResolution" aria-label="Brand Resolution and Architectural Identity">
+      <div class="brand-resolve__inner">
+        <div class="brand-resolve__content reveal">
+          <div class="brand-resolve__badge">
+            <span class="brand-resolve__badge-dot"></span>
+            <span>ARCHITECTURAL LANDMARKS · EST. 2020</span>
+          </div>
+
+          <img src="assets/logofiles/logoskyscraper.svg" alt="Skyscraper Architectural Emblem" class="brand-resolve__logo visible">
+          <p class="brand-resolve__tagline visible">"Bring home to quality"</p>
+          <div class="brand-resolve__line visible"></div>
+
+          <p class="brand-resolve__desc">
+            Crafting enduring residential sanctuaries across Jharkhand. Grounded in structural permanence, bioclimatic restraint, and four decades of uncompromising trust.
+          </p>
+
+          <div class="brand-resolve__actions">
+            <a href="#enquiry" class="btn-luxury">Enquire Now</a>
+            <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" download="Deonarayan-Estate-Brochure.pdf" target="_blank" rel="noopener" class="btn-luxury-outline">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Download Brochure</span>
+            </a>
+            <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%2C%20I%20would%20like%20to%20enquire%20about%20your%20architectural%20residences." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+              <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+              <span>WhatsApp Concierge</span>
+            </a>
+          </div>
+
+          <div class="brand-resolve__meta-strip">
+            <div class="brand-resolve__meta-item">
+              <span class="meta-label">LIVE SIGNATURE PROJECT</span>
+              <span class="meta-value">Deonarayan Estate · Hazaribagh</span>
+            </div>
+            <div class="brand-resolve__meta-item">
+              <span class="meta-label">GOVERNMENT ACCREDITATION</span>
+              <span class="meta-value">JHARERA/PROJECT/49/2025</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 07 — EDITORIAL INTRODUCTION (WHAT IS SKYSCRAPER)
+         ============================================================ -->
+    <section class="editorial section--dark" id="about">
+      <div class="editorial__grid">
+        <div class="editorial__content reveal">
+          <p class="editorial__meta type-meta">Architecture · Spatial Practice</p>
+          <h1 class="editorial__title">We craft spaces that frame human calm.</h1>
+          <div class="editorial__text">
+            <p>
+              Skyscraper operates as a digital architectural practice grounded in Jharkhand. We reject the hurried conventions of mass property development — the loud billboards, disposable materials, and generic floorplates.
+            </p>
+            <p>
+              Our work is defined by structural permanence, natural light orientation, generous negative space, and uncompromised material honesty. Every threshold is considered. Every square foot is shaped to outlive fashion.
+            </p>
+            <div style="margin-top: 2.5rem;">
+              <a href="#philosophy" class="cta-link">
+                <span>The Skyscraper Philosophy</span>
+                <span class="cta-link__arrow" aria-hidden="true"></span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="editorial__image editorial__image--tall reveal reveal--delay-2">
+          <img src="assets/placeholder_images/peaceful_living.png" alt="Light cascading across tranquil interior architectural volumes" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <!-- Editorial Secondary Grid -->
+    <section class="editorial section--dark" style="padding-top: 0;">
+      <div class="editorial__grid editorial__grid--reverse">
+        <div class="editorial__content reveal">
+          <p class="editorial__meta type-meta">Jharkhand · Ranchi & Hazaribagh</p>
+          <h2 class="editorial__title">Permanence over novelty.</h2>
+          <div class="editorial__text">
+            <p>
+              In a rapidly developing region, we build residences engineered for calm. We align our structural engineering with certified RCC earthquake-resistant frameworks, high-specification internal wiring, and monolithic stone finishes.
+            </p>
+            <p>
+              This is not real estate speculation. It is a commitment to creating enduring family sanctuaries where memories take root across decades.
+            </p>
+          </div>
+        </div>
+
+        <div class="editorial__image editorial__image--tall reveal reveal--delay-2">
+          <img src="assets/placeholder_images/pillars.png" alt="Structural column rhythm and architectural monolithic concrete" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 07B — THE SKYSCRAPER WAY (PHILOSOPHY NARRATIVE)
+         ============================================================ -->
+    <section class="philosophy section--charcoal" id="philosophy" aria-label="The Skyscraper Philosophy">
+      
+      <!-- Philosophy 01: SPACE -->
+      <article class="philosophy__item">
+        <div class="philosophy__visual">
+          <img src="assets/placeholder_images/balcony closeup.png" alt="Generous residential balcony volume framing open sky" loading="lazy">
+        </div>
+        <div class="philosophy__content reveal">
+          <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Principle 01</p>
+          <h3 class="philosophy__word">SPACE</h3>
+          <p class="philosophy__desc">
+            Room to breathe. High internal clear heights, generous room dimensions, and uncompromised separation between private sleeping suites and shared living expanses.
+          </p>
+        </div>
+      </article>
+
+      <!-- Philosophy 02: LIGHT -->
+      <article class="philosophy__item">
+        <div class="philosophy__visual">
+          <img src="assets/placeholder_images/windows shot.png" alt="Natural daylight washing over clean architectural masonry" loading="lazy">
+        </div>
+        <div class="philosophy__content reveal">
+          <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Principle 02</p>
+          <h3 class="philosophy__word">LIGHT</h3>
+          <p class="philosophy__desc">
+            Orientation designed around the sun's trajectory. Wide aluminium sliding windows invite morning illumination while natural cross-ventilation keeps interiors temperate and fresh.
+          </p>
+        </div>
+      </article>
+
+      <!-- Philosophy 03: MATERIAL -->
+      <article class="philosophy__item">
+        <div class="philosophy__visual">
+          <img src="assets/placeholder_images/railing closeup.png" alt="Precision stainless steel architectural joinery and textured masonry" loading="lazy">
+        </div>
+        <div class="philosophy__content reveal">
+          <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Principle 03</p>
+          <h3 class="philosophy__word">MATERIAL</h3>
+          <p class="philosophy__desc">
+            Honest materiality that matures with age. Monolithic granite countertops, 2'x2' vitrified tile floors, marble stairwells, and weatherproof exterior coatings.
+          </p>
+        </div>
+      </article>
+
+      <!-- Philosophy 04: CRAFT -->
+      <article class="philosophy__item">
+        <div class="philosophy__visual">
+          <img src="assets/deonarayan_asset/rcc structure.png" alt="Earthquake resistant RCC framework engineering" loading="lazy">
+        </div>
+        <div class="philosophy__content reveal">
+          <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Principle 04</p>
+          <h3 class="philosophy__word">CRAFT</h3>
+          <p class="philosophy__desc">
+            Structural rigor beneath the surface. Certified RCC frame structural design, multicore copper wiring, automated silent power backup, and centralized water storage per block.
+          </p>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- ============================================================
+         PHASE 07C — SUSTAINABLE GROWTH & 4-DECADE LEGACY (RESTORED)
+         Original SkyScraper Brand Heritage, Motto & Environmental Design
+         ============================================================ -->
+    <section class="sustainability section--dark" id="sustainability" aria-label="Sustainable Growth and Heritage">
+      <div class="sustainability__grid">
+        
+        <div class="sustainability__intro reveal">
+          <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Heritage & Sustainability · 4 Decades of Excellence</p>
+          <h2 class="editorial__title" style="margin-bottom: 1rem;">Building for generations, not seasons.</h2>
+          <p class="sustainability__motto">"Bring home to quality" — Crafting Spaces, Creating Memories.</p>
+          
+          <div class="editorial__text">
+            <p>
+              For over four decades, M/S Skyscraper has stood as a vanguard of architectural permanence across Jharkhand. Our practice across Ranchi and Hazaribagh is anchored in an unyielding conviction: every home must be a living sanctuary that enriches both family life and its natural habitat.
+            </p>
+            <p>
+              Sustainable development is not a superficial addition to our practice; it is our foundational baseline. We combine bioclimatic spatial planning with precision structural engineering, ensuring minimal resource consumption, natural thermal comfort, and responsible ecological stewardship.
+            </p>
+          </div>
+
+          <div class="sustainability__quote">
+            "True luxury resides in tranquility — breathing clean air, basking in natural dawn illumination, and knowing your home was engineered to protect the land it rests upon."
+          </div>
+
+          <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="#deonarayan" class="btn-luxury">Explore Deonarayan Estate</a>
+            <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" download="Deonarayan-Estate-Brochure.pdf" target="_blank" rel="noopener" class="btn-luxury-outline">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Download Brochure</span>
+            </a>
+            <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%2C%20I%20would%20like%20to%20learn%20more%20about%20your%20sustainable%20architectural%20principles." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+              <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+              <span>Inquire on WhatsApp</span>
+            </a>
+          </div>
+
+          </div>
+        </div>
+
+        <div class="sustainability__pillars reveal reveal--delay-1">
+          
+          <!-- Pillar 01 -->
+          <div class="sustainability__card">
+            <p class="sustainability__num">Feature 01</p>
+            <h4 class="sustainability__card-title">Passive Solar & Microclimate</h4>
+            <p class="sustainability__card-desc">
+              Oriented to optimize natural daylight while mitigating harsh afternoon thermal gains, reducing household energy loads year-round.
+            </p>
+          </div>
+
+          <!-- Pillar 02 -->
+          <div class="sustainability__card">
+            <p class="sustainability__num">Feature 02</p>
+            <h4 class="sustainability__card-title">Natural Cross-Ventilation</h4>
+            <p class="sustainability__card-desc">
+              Strategically aligned wide sliding glass apertures create continuous air currents, keeping indoor spaces temperate and fresh.
+            </p>
+          </div>
+
+          <!-- Pillar 03 -->
+          <div class="sustainability__card">
+            <p class="sustainability__num">Feature 03</p>
+            <h4 class="sustainability__card-title">Rainwater Harvesting</h4>
+            <p class="sustainability__card-desc">
+              Engineered groundwater replenishment network capturing rooftop rainfall and returning purified water to the local water table.
+            </p>
+          </div>
+
+          <!-- Pillar 04 -->
+          <div class="sustainability__card">
+            <p class="sustainability__num">Feature 04</p>
+            <h4 class="sustainability__card-title">Low-Emission Silent Power</h4>
+            <p class="sustainability__card-desc">
+              Acoustically insulated standby power systems delivering clean 400W emergency residential support per flat without noise disturbance.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 08 — 35-SECOND ARCHITECTURAL SCROLL SEQUENCE
+         Scroll position directly drives frame progression (825 frames)
+         ============================================================ -->
+    <section class="arch-scroll" id="archScrollSection" style="height: 480vh;" aria-label="35-Second Architectural Walkthrough">
+      <div class="arch-scroll__sticky">
+        <div class="arch-scroll__canvas">
+          <canvas id="scrollCanvas" aria-label="Architectural walkthrough sequence"></canvas>
+          <div class="arch-scroll__scrim" aria-hidden="true"></div>
+
+          <!-- Vertical Scroll Progress -->
+          <div class="arch-scroll__progress" aria-hidden="true">
+            <div class="arch-scroll__progress-fill" id="scrollProgressFill" style="height: 0%;"></div>
+          </div>
+
+          <!-- Synchronized Editorial Layer (Lower-Left Placement, Playfair Display 500) -->
+          <div class="arch-scroll__text" id="archScrollOverlay" aria-live="polite">
+            <p class="arch-scroll__label" id="scrollLabel">
+              <span class="arch-scroll__label-bullet"></span>
+              <span id="scrollLabelText">THE ARRIVAL</span>
+            </p>
+            <h3 class="arch-scroll__headline" id="scrollHeadline">A More Refined Way to Live.</h3>
+            <p class="arch-scroll__subline" id="scrollSubline">Exterior Building Elevation & Arrival Approach</p>
+            <div class="arch-scroll__counter-wrap">
+              <span class="arch-scroll__counter" id="scrollFrameCounter">FRAME 0001 / 0825</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 09 & 10 — DEONARAYAN ESTATE (LIVE PROJECT WORLD)
+         Status: ONGOING | JHARERA/PROJECT/49/2025
+         ============================================================ -->
+    <section class="project-hero" id="deonarayan" aria-label="Deonarayan Estate Project Profile">
+      <div class="project-hero__bg">
+        <img src="assets/logofiles/deonarayanrender.png" alt="Deonarayan Estate Architectural Perspective Render">
+      </div>
+      <div class="project-hero__gradient"></div>
+
+      <div class="project-hero__content">
+        <div class="project-hero__status">
+          <span>ONGOING</span>
+          <span style="opacity: 0.5;">·</span>
+          <span>ESTABLISHED 2020</span>
+          <span style="opacity: 0.5;">·</span>
+          <span>POSSESSION 2028</span>
+          <span style="opacity: 0.5;">·</span>
+          <span>JHARERA/PROJECT/49/2025</span>
+        </div>
+
+        <h2 class="project-hero__name">DEONARAYAN ESTATE</h2>
+        <p class="project-hero__tagline">"Crafting Spaces, Creating Memories" — Crafted for Calm. Built for Life.</p>
+
+        <div class="project-hero__details">
+          <div>
+            <p class="project-hero__detail-label">Configuration</p>
+            <p class="project-hero__detail-value">3 BHK Residences</p>
+          </div>
+          <div>
+            <p class="project-hero__detail-label">Super Built-Up Area</p>
+            <p class="project-hero__detail-value">1,450 – 1,650 sq.ft.</p>
+          </div>
+          <div>
+            <p class="project-hero__detail-label">Location</p>
+            <p class="project-hero__detail-value">Forest Colony, Hazaribagh</p>
+          </div>
+          <div>
+            <p class="project-hero__detail-label">Developer</p>
+            <p class="project-hero__detail-value">M/S Skyscraper</p>
+          </div>
+          <div>
+            <p class="project-hero__detail-label">Established</p>
+            <p class="project-hero__detail-value">2020</p>
+          </div>
+          <div>
+            <p class="project-hero__detail-label">Possession</p>
+            <p class="project-hero__detail-value">2028</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 2.25rem; display: flex; gap: 1rem; flex-wrap: wrap;" class="reveal">
+          <a href="#plans" class="btn-luxury">Explore Floor Plans</a>
+          <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" download="Deonarayan-Estate-Brochure.pdf" target="_blank" rel="noopener" class="btn-luxury-outline">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download Brochure (PDF)</span>
+          </a>
+          <a href="#specifications" class="btn-luxury-outline">View Specifications</a>
+          <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%2C%20I%20am%20interested%20in%20Deonarayan%20Estate%203%20BHK%20residences%20in%20Hazaribagh." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+            <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+            <span>Enquire on WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 12 — ARCHITECTURE: CURATED VISUAL SEQUENCE
+         ============================================================ -->
+    <section class="section section--dark" style="padding: var(--space-4xl) 0;">
+      <div class="section-header reveal">
+        <p class="section-header__meta">Curated Architectural Moments</p>
+        <h3 class="section-header__title">Form dictated by light, material, and life.</h3>
+      </div>
+
+      <div class="container">
+        <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-lg); align-items: center;">
+          
+          <div style="grid-column: span 7;" class="reveal">
+            <div class="editorial__image editorial__image--wide">
+              <img src="assets/placeholder_images/goldenhourview.png" alt="Deonarayan Estate under warm evening light" loading="lazy">
+            </div>
+            <p class="type-meta" style="margin-top: 0.75rem;">Elevation Profile · Natural Horizon</p>
+          </div>
+
+          <div style="grid-column: span 5;" class="reveal reveal--delay-2">
+            <div class="editorial__image editorial__image--tall">
+              <img src="assets/placeholder_images/ongoing.png" alt="Structural framing and masonry progression" loading="lazy">
+            </div>
+            <p class="type-meta" style="margin-top: 0.75rem;">Structural Progression · Monolithic Skeleton</p>
+          </div>
+
+          <div style="grid-column: span 4;" class="reveal">
+            <div class="editorial__image editorial__image--square">
+              <img src="assets/placeholder_images/shadow reflection.png" alt="Reflections and optical quietude" loading="lazy">
+            </div>
+            <p class="type-meta" style="margin-top: 0.75rem;">Acoustic Stillness</p>
+          </div>
+
+          <div style="grid-column: span 8;" class="reveal reveal--delay-1">
+            <div class="editorial__image editorial__image--wide">
+              <img src="assets/placeholder_images/rainwetcinematicshot.png" alt="Material resilience in all weather conditions" loading="lazy">
+            </div>
+            <p class="type-meta" style="margin-top: 0.75rem;">Weatherproof Exterior Finish</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 13 — ORIGINAL ARCHITECTURAL FLOOR PLANS
+         Original drawings preserved with pan/zoom/fullscreen
+         ============================================================ -->
+    <section class="floor-plans section--charcoal" id="plans" aria-label="Floor Plans Viewer">
+      <div class="section-header reveal">
+        <p class="section-header__meta">Architectural Documents · Original Sheets</p>
+        <h3 class="section-header__title">Verified Floor Plans</h3>
+      </div>
+
+      <!-- Plan Level Selectors -->
+      <div class="floor-plans__tabs" id="planTabs" role="tablist" aria-label="Floor Plan Levels">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Viewer Container -->
+      <div class="floor-plans__viewer" id="planViewer">
+        <img 
+          src="public/floorplans/floor_plan_page_1.jpg" 
+          alt="Ground Floor Plan" 
+          id="planImage" 
+          class="floor-plans__img">
+      </div>
+
+      <!-- Interactive Controls -->
+      <div class="floor-plans__controls">
+        <button type="button" class="floor-plans__control-btn" id="planZoomIn" aria-label="Zoom In">+</button>
+        <button type="button" class="floor-plans__control-btn" id="planZoomOut" aria-label="Zoom Out">−</button>
+        <button type="button" class="floor-plans__control-btn" id="planReset">Reset View</button>
+        <button type="button" class="floor-plans__control-btn" id="planFullscreen">Fullscreen</button>
+        <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" download="Deonarayan-Estate-Brochure.pdf" target="_blank" rel="noopener" class="floor-plans__control-btn floor-plans__download-btn" aria-label="Download Official Master Brochure PDF">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Download Folio (PDF)</span>
+        </a>
+      </div>
+
+      <!-- Plan Meta Details -->
+      <div class="container" style="margin-top: var(--space-xl); text-align: center;">
+        <h4 id="planTitle" class="type-heading" style="font-size: var(--text-2xl); margin-bottom: 0.5rem;">Ground Floor & Entrance Layout</h4>
+        <p id="planSubtitle" class="type-body" style="color: var(--warm-gray);">Entrance threshold, vehicular circulation, lobby & access points</p>
+        <p class="type-meta" style="margin-top: 1rem; color: var(--accent-gold-light);">3 BHK Units · 1,450 to 1,650 sq.ft. Super Built-Up Area</p>
+        
+        <div style="margin-top: 1.75rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;" class="reveal">
+          <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" download="Deonarayan-Estate-Brochure.pdf" target="_blank" rel="noopener" class="btn-luxury">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download Master Folio (PDF)</span>
+          </a>
+          <a href="#enquiry" class="btn-luxury-outline">Request Printed Folio</a>
+          <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%2C%20please%20share%20the%20complete%20architectural%20floor%20plan%20folio%20for%20Deonarayan%20Estate." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+            <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+            <span>Request Plan Folio on WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 14 — MATERIAL SPECIFICATIONS (VERBATIM REGISTER)
+         Exact wording from locked facts register
+         ============================================================ -->
+    <section class="specs section--dark" id="specifications" aria-label="Material & Engineering Specifications">
+      <div class="section-header reveal">
+        <p class="section-header__meta">Technical Document · Verbatim Specification</p>
+        <h3 class="section-header__title">Engineering & Material System</h3>
+      </div>
+
+      <div class="specs__list">
+        
+        <!-- 01. Structure -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 01</span>
+            <h4 class="spec-item__category">Structure</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              RCC frame, earthquake-resistant design engineered in compliance with strict structural stability codes.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/rcc structure.png" alt="RCC frame structural reinforcement" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 02. Doors & Windows -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 02</span>
+            <h4 class="spec-item__category">Doors & Windows</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Flush main door with central lock; internal flush doors with SS hardware, wooden/marble frames; aluminium sliding windows with glass panels.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/door specification.png" alt="Solid timber door and stainless hardware" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 03. Flooring -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 03</span>
+            <h4 class="spec-item__category">Flooring</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Vitrified 2'x2' tiles (covered flat area); marble in corridors/stairs; PCC + checkered tiles in parking; paver blocks in open spaces.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/flooring.png" alt="Polished vitrified floor tiles" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 04. Bathroom -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 04</span>
+            <h4 class="spec-item__category">Bathroom</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Anti-skid vitrified floor tiles; glazed wall tiles to 7ft height for enduring moisture resistance and effortless maintenance.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/washroom speficication.png" alt="Anti-skid tiling and glazed wall tiles" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 05. Kitchen -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 05</span>
+            <h4 class="spec-item__category">Kitchen</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Granite platform with steel sink; glazed tiles 2ft above platform; hot/cold water provision in sink.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/granitekitchen.png" alt="Black polished granite kitchen platform" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 06. Lift -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 06</span>
+            <h4 class="spec-item__category">Lift</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              6-passenger capacity, standard make passenger elevator serving all residential floors.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/passengerlift.png" alt="Modern automated passenger lift cabin" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 07. Walls -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 07</span>
+            <h4 class="spec-item__category">Walls</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Internal cement + POP finish; external weatherproof textured paint engineered to withstand seasonal monsoon cycles.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/placeholder_images/wallpinterest.png" alt="Smooth plaster wall and weatherproof exterior render" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 08. CCTV Surveillance -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 08</span>
+            <h4 class="spec-item__category">CCTV Surveillance</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              CCTV surveillance provided as a standard fixed-charge facility across the property, alongside intercom and lift access — per brochure specifications.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/cctv specification.png" alt="CCTV surveillance camera installation" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 09. Water Supply -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 09</span>
+            <h4 class="spec-item__category">Water Supply</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Common water tank per block ensuring continuous pressure and uninterrupted residential supply.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/hotcoldwater.png" alt="Centralized residential water storage" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. Generator Backup -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 10</span>
+            <h4 class="spec-item__category">Generator Backup</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Silent mode generator powering common lighting, lift, pump + 400W emergency power dedicated per flat.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/generatorbackup.png" alt="Acoustic silent backup power generator" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 11. Electrical -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 11</span>
+            <h4 class="spec-item__category">Electrical</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              Copper multi-core wiring throughout; room/kitchen/bathroom points per brochure specifications.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/electrical.png" alt="Copper multi-core wiring and switchboard installation" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 12. Puja Room -->
+        <div class="spec-item reveal">
+          <div class="spec-item__header">
+            <span class="type-meta" style="color: var(--accent-gold);">Spec 12</span>
+            <h4 class="spec-item__category">Puja Room</h4>
+          </div>
+          <div class="spec-item__body">
+            <p class="spec-item__text">
+              A dedicated puja room is included within the residential layout, positioned as a quiet, separate space within the home — per the approved floor plans.
+            </p>
+            <div class="spec-item__image">
+              <img src="assets/deonarayan_asset/pujaroom.png" alt="Illustrative render of a dedicated puja room (stock-style render, not an actual property photo)" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Other Fixed Charges (Verified transparent disclosure) -->
+      <div class="container" style="margin-top: var(--space-3xl); padding-top: var(--space-xl); border-top: 1px solid var(--charcoal-light);">
+        <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Associated Provisions</p>
+        <p class="type-body" style="color: var(--warm-gray); max-width: 800px;">
+          Silent generator backup · Intercom integration · CCTV perimeter security · Facility & Lift maintenance · Reserved car & two-wheeler parking.
+        </p>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;" class="reveal">
+          <a href="#specFilm" class="btn-luxury-outline">Watch Specification Walkthrough Film ↓</a>
+          <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%2C%20I%20would%20like%20detailed%20information%20on%20Deonarayan%20Estate%20material%20specifications." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+            <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+            <span>Enquire on Specifications via WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 14B — SPECIFICATION CINEMATIC FILM (SPECIFICATION.MP4)
+         Immediately beneath Deonarayan Estate specifications
+         ============================================================ -->
+    <section class="spec-film section--dark" id="specFilm" aria-label="Specification Architectural Film">
+      <div class="spec-film__container reveal">
+        <div class="section-header" style="padding-left: 0; padding-right: 0; margin-bottom: var(--space-lg);">
+          <p class="section-header__meta">Cinematic Material Documentation</p>
+          <h3 class="section-header__title">Specification in Motion</h3>
+          <p class="type-body" style="color: var(--warm-gray); max-width: 720px; margin-top: 1rem;">
+            Experience the tangible craftsmanship of Deonarayan Estate — from certified earthquake-resistant structural reinforcement to polished granite work surfaces and precision aluminium joinery.
+          </p>
+        </div>
+
+        <div class="spec-film__wrapper">
+          <span class="spec-film__badge">Architectural Walkthrough · Specification Reel</span>
+          <video 
+            class="spec-film__video" 
+            id="specificationVideo" 
+            controls 
+            playsinline 
+            preload="metadata"
+            poster="assets/placeholder_images/goldenhourview.png">
+            <source src="assets/deonarayan_asset/SPECIFICATION.mp4" type="video/mp4">
+            <source src="SPECIFICATION.mp4" type="video/mp4">
+            Your browser does not support HTML5 video streaming.
+          </video>
+        </div>
+
+        <div class="spec-film__controls-bar">
+          <p class="spec-film__caption">Deonarayan Estate · Forest Colony, Hazaribagh · JHARERA/PROJECT/49/2025</p>
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <a href="#enquiry" class="btn-luxury">Enquire About Technical Folio</a>
+            <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%20Team%2C%20I%20just%20watched%20the%20Deonarayan%20Estate%20specification%20video%20and%20would%20like%20to%20know%20more." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+              <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+              <span>WhatsApp Project Engineer</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 15 — LOCATION EXPERIENCE (VERIFIED ADDRESSES)
+         ============================================================ -->
+    <section class="location section--charcoal" id="location" aria-label="Site and Office Location">
+      <div class="section-header reveal">
+        <p class="section-header__meta">Geography · Verified Coordinates</p>
+        <h3 class="section-header__title">Rooted in Forest Colony, Hazaribagh</h3>
+      </div>
+
+      <div class="location__grid">
+        <div class="location__info reveal">
+          <div style="margin-bottom: var(--space-2xl);">
+            <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Project Site Address</p>
+            <p class="location__address">
+              <strong>Deonarayan Estate</strong><br>
+              Behind St. Stephen School, New Bus Stand,<br>
+              Forest Colony, Hazaribagh – 825301,<br>
+              Jharkhand, India
+            </p>
+            <p class="type-meta">Registration: JHARERA/PROJECT/49/2025</p>
+          </div>
+
+          <div style="margin-bottom: var(--space-2xl);">
+            <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Head Office Address</p>
+            <p class="location__address">
+              <strong>M/S Skyscraper</strong><br>
+              Ground Floor, Maurya Residency, Nalanda Colony,<br>
+              Bariatu, Ranchi – 834009,<br>
+              Jharkhand, India
+            </p>
+          </div>
+
+          <div>
+            <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 0.5rem;">Direct Concierge</p>
+            <p class="type-body" style="color: var(--paper);">
+              Phone: +91 91213 14502 / 14503 / 14504<br>
+              Email: <a href="mailto:skyscrapers.ranchi@gmail.com" style="color: var(--accent-gold-light); text-decoration: underline;">skyscrapers.ranchi@gmail.com</a>
+            </p>
+
+            <div style="margin-top: 1.75rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+              <a href="#enquiry" class="btn-luxury">Schedule Site Visit</a>
+              <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%2C%20I%20would%20like%20to%20schedule%20an%20on-site%20visit%20to%20Deonarayan%20Estate%20in%20Hazaribagh." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+                <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+                <span>WhatsApp Site Concierge</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="location__map reveal reveal--delay-2">
+          <!-- Monochromatic architectural map embed centered on Hazaribagh Forest Colony / New Bus Stand -->
+          <iframe 
+            title="Deonarayan Estate Location Map"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14603.585721867168!2d85.3524956!3d23.9902641!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f49c06342898cf%3A0x6b1ec64627ef6781!2sForest%20Colony%2C%20Hazaribagh%2C%20Jharkhand%20825301!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 16 — ANIMA SKY RESIDENCY (SOLD OUT CHAPTER)
+         Intentionally minimal retrospective module
+         ============================================================ -->
+    <section class="sold-out section--dark" id="anima" aria-label="Completed Project: Anima Sky Residency">
+      <div class="sold-out__grid">
+        <div class="sold-out__image reveal">
+          <img src="assets/logofiles/animaskyrender.png" alt="Anima Sky Residency Exterior Perspective">
+          <span class="sold-out__badge">SOLD OUT</span>
+        </div>
+
+        <div class="sold-out__content reveal reveal--delay-2">
+          <p class="type-meta" style="color: var(--warm-gray); margin-bottom: 0.5rem;">Completed Chapter · Residential & Commercial</p>
+          <h3 class="sold-out__name">ANIMA SKY RESIDENCY</h3>
+          <p class="sold-out__desc">
+            A completed residential landmark developed by M/S Skyscraper featuring residential flat types A through D. Fully subscribed and inhabited.
+          </p>
+          <p class="type-body" style="color: var(--warm-gray); font-size: var(--text-sm); margin-bottom: 2rem;">
+            Anima Sky stands as concrete proof of our commitment to delivering verified architectural craftsmanship on schedule.
+          </p>
+          <a href="#enquiry" class="cta-link">
+            <span>Interested in upcoming work? Start a conversation</span>
+            <span class="cta-link__arrow" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 17 — FUTURE SECTION
+         "The work continues" — without inventing speculative projects
+         ============================================================ -->
+    <section class="future" id="future" aria-label="Future Direction">
+      <div class="future__content reveal">
+        <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 1rem;">Looking Forward</p>
+        <h3 class="future__title">THE WORK CONTINUES</h3>
+        <p class="future__text">
+          Architecture is not an inventory of products — it is an ongoing dialogue with light, climate, and stone. As Deonarayan Estate rises in Hazaribagh, our architectural practice continues to deliberate over the sanctuaries of tomorrow.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 17B — LEADERBOARD: EXECUTIVE LEADERSHIP (RESTORED)
+         Verified profiles from official Skyscraper Leadership Brochure
+         ============================================================ -->
+    <section class="leaderboard section--charcoal" id="leaderboard" aria-label="Executive Leadership">
+      <div class="section-header reveal">
+        <p class="section-header__meta">Governance & Stewardship · 4 Decades of Trust</p>
+        <h3 class="section-header__title">Executive Leadership</h3>
+        <p class="type-body" style="color: var(--warm-gray); max-width: 720px; margin-top: 1rem;">
+          The minds and hands guiding M/S Skyscraper. Decades of combined civil engineering mastery, fiduciary transparency, and architectural stewardship across Jharkhand.
+        </p>
+      </div>
+
+      <div class="leaderboard__grid">
+        <!-- 01. Shri Girish Chandra Prasad -->
+        <article class="leaderboard__card reveal">
+          <div class="leaderboard__portrait">
+            <img src="public/leaderboard/leadership_page_1.jpg" alt="Shri Girish Chandra Prasad - Chairman" loading="lazy">
+          </div>
+          <div class="leaderboard__meta">
+            <p class="leaderboard__role">Chairman</p>
+            <h4 class="leaderboard__name">Shri Girish Chandra Prasad</h4>
+            <p class="leaderboard__bio">
+              Four decades of real estate leadership behind him, providing foundational vision and uncompromising ethical governance. Steers the enterprise's mission to craft enduring community landmarks and uphold generational trust across Bihar and Jharkhand.
+            </p>
+          </div>
+        </article>
+
+        <!-- 02. Rajesh Kumar -->
+        <article class="leaderboard__card reveal reveal--delay-1">
+          <div class="leaderboard__portrait">
+            <img src="public/leaderboard/leadership_page_2.jpg" alt="Rajesh Kumar - Executive Chairman" loading="lazy">
+          </div>
+          <div class="leaderboard__meta">
+            <p class="leaderboard__role">Executive Chairman</p>
+            <h4 class="leaderboard__name">Rajesh Kumar</h4>
+            <p class="leaderboard__bio">
+              Directs operational strategy, institutional financing, and cross-functional project execution across residential and commercial developments. Ensures each project adheres to rigorous delivery timelines and structural integrity.
+            </p>
+          </div>
+        </article>
+
+        <!-- 03. Dhirendra Kumar -->
+        <article class="leaderboard__card reveal reveal--delay-2">
+          <div class="leaderboard__portrait">
+            <img src="public/leaderboard/leadership_page_3.jpg" alt="Dhirendra Kumar - Executive Chairman" loading="lazy">
+          </div>
+          <div class="leaderboard__meta">
+            <p class="leaderboard__role">Executive Chairman</p>
+            <h4 class="leaderboard__name">Dhirendra Kumar</h4>
+            <p class="leaderboard__bio">
+              Champions affordability and quality construction as non-negotiables. Shapes future-focused planning built around the evolving needs of today's homebuyers and investors, anchoring Skyscraper's long-term, sustainable growth.
+            </p>
+          </div>
+        </article>
+
+        <!-- 04. Pawan Singh -->
+        <article class="leaderboard__card reveal">
+          <div class="leaderboard__portrait">
+            <img src="public/leaderboard/leadership_page_4.jpg" alt="Pawan Singh - Director" loading="lazy">
+          </div>
+          <div class="leaderboard__meta">
+            <p class="leaderboard__role">Director</p>
+            <h4 class="leaderboard__name">Pawan Singh</h4>
+            <p class="leaderboard__bio">
+              Drives operational modernization across Skyscraper — introducing the systems and processes that sharpen efficiency company-wide, backed by a forward-thinking, innovation-first approach.
+            </p>
+          </div>
+        </article>
+
+        <!-- 05. Kanchan Parimal -->
+        <article class="leaderboard__card reveal reveal--delay-1">
+          <div class="leaderboard__portrait">
+            <img src="public/leaderboard/leadership_page_5.jpg" alt="Kanchan Parimal - Director" loading="lazy">
+          </div>
+          <div class="leaderboard__meta">
+            <p class="leaderboard__role">Director</p>
+            <h4 class="leaderboard__name">Kanchan Parimal</h4>
+            <p class="leaderboard__bio">
+              Leads human resources and policy management at Skyscraper. Builds organizational culture through people-centric leadership rooted in professionalism, collaboration, and continuous development.
+            </p>
+          </div>
+        </article>
+
+        <!-- 06. Ankur Sinha -->
+        <article class="leaderboard__card reveal reveal--delay-2">
+          <div class="leaderboard__portrait">
+            <img src="public/leaderboard/leadership_page_6.jpg" alt="Ankur Sinha - Director" loading="lazy">
+          </div>
+          <div class="leaderboard__meta">
+            <p class="leaderboard__role">Director</p>
+            <h4 class="leaderboard__name">Ankur Sinha</h4>
+            <p class="leaderboard__bio">
+              Brings design sensibility and technological awareness to the leadership table. Tracks contemporary design and sustainable development practices to shape the direction of Skyscraper's future projects.
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <!-- Dedicated Leaderboard CTA -->
+      <div class="leaderboard__cta-banner reveal">
+        <p class="type-meta" style="color: var(--accent-gold); margin-bottom: 0.5rem;">Direct Leadership Channel</p>
+        <h4 class="leaderboard__cta-title">Connect with Our Executive Board</h4>
+        <p class="leaderboard__cta-desc">
+          Have an architectural inquiry, institutional partnership proposal, or bespoke residential consultation? Speak directly with our leadership team.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="#enquiry" class="btn-luxury">GET IN TOUCH WITH US</a>
+          <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%20Leadership%2C%20I%20would%20like%20to%20get%20in%20touch%20regarding%20Deonarayan%20Estate." target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+            <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+            <span>WhatsApp Leadership Desk</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 18 & 19 — LEAD GENERATION ENGINE & CONVERSATIONAL ENQUIRY
+         Conversational 4-step flow routed to skyscrapers.ranchi@gmail.com
+         ============================================================ -->
+    <section class="enquiry section--dark" id="enquiry" aria-label="Concierge Enquiry Flow">
+      <div class="enquiry__container">
+        
+        <div class="section-header" style="padding-left: 0; padding-right: 0;">
+          <p class="section-header__meta">Private Concierge · Direct Channel</p>
+          <h3 class="section-header__title">Start a Conversation</h3>
+        </div>
+
+        <form id="enquiryForm" novalidate>
+
+          <!-- STEP 1: INTENT -->
+          <div class="enquiry__step active" data-step="1">
+            <h4 class="enquiry__question">What are you looking for?</h4>
+            <div class="enquiry__options">
+              <button type="button" class="enquiry__option" data-enquiry-intent="A 3 BHK Residence for Family Living">
+                A 3 BHK Residence for Family Living
+              </button>
+              <button type="button" class="enquiry__option" data-enquiry-intent="Architectural & Floor Plan Documentation">
+                Architectural & Floor Plan Documentation
+              </button>
+              <button type="button" class="enquiry__option" data-enquiry-intent="Schedule an On-Site Visit in Hazaribagh">
+                Schedule an On-Site Visit in Hazaribagh
+              </button>
+              <button type="button" class="enquiry__option" data-enquiry-intent="General Architectural Inquiry">
+                General Architectural Inquiry
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 2: PROJECT SELECTION -->
+          <div class="enquiry__step" data-step="2">
+            <h4 class="enquiry__question">Which development interests you?</h4>
+            <div class="enquiry__options">
+              <button type="button" class="enquiry__option" data-enquiry-project="Deonarayan Estate (Ongoing · Hazaribagh)">
+                Deonarayan Estate <span style="font-size: var(--text-xs); opacity: 0.6;">(Ongoing · Forest Colony, Hazaribagh)</span>
+              </button>
+              <button type="button" class="enquiry__option" data-enquiry-project="General Skyscraper Advisory (Jharkhand)">
+                General Skyscraper Advisory <span style="font-size: var(--text-xs); opacity: 0.6;">(Head Office · Bariatu, Ranchi)</span>
+              </button>
+            </div>
+            <button type="button" class="enquiry__back" data-enquiry-back>← Previous Step</button>
+          </div>
+
+          <!-- STEP 3: CONTACT INFORMATION -->
+          <div class="enquiry__step" data-step="3">
+            <h4 class="enquiry__question">How may our architectural team reach you?</h4>
+            
+            <div class="enquiry__field">
+              <label for="enquiryName" class="enquiry__label">Full Name</label>
+              <input type="text" id="enquiryName" class="enquiry__input" placeholder="e.g. Anand Vardhan" required autocomplete="name">
+              <p class="enquiry__error" id="nameError">Please provide your full name.</p>
+            </div>
+
+            <div class="enquiry__field">
+              <label for="enquiryPhone" class="enquiry__label">Phone Number</label>
+              <input type="tel" id="enquiryPhone" class="enquiry__input" placeholder="+91 98765 43210" required autocomplete="tel">
+              <p class="enquiry__error" id="phoneError">Please provide a valid contact number.</p>
+            </div>
+
+            <div class="enquiry__field">
+              <label for="enquiryEmail" class="enquiry__label">Email Address</label>
+              <input type="email" id="enquiryEmail" class="enquiry__input" placeholder="name@domain.com" required autocomplete="email">
+              <p class="enquiry__error" id="emailError">Please enter a valid email address.</p>
+            </div>
+
+            <div class="enquiry__field">
+              <label for="enquiryNotes" class="enquiry__label">Specific Requirements (Optional)</label>
+              <input type="text" id="enquiryNotes" class="enquiry__input" placeholder="Preferred floor, move-in horizon, or site visit date">
+            </div>
+
+            <div>
+              <button type="submit" class="enquiry__submit" id="enquirySubmit">Transmit Enquiry</button>
+            </div>
+            
+            <button type="button" class="enquiry__back" data-enquiry-back>← Previous Step</button>
+          </div>
+
+          <!-- STEP 4: CONFIRMATION -->
+          <div class="enquiry__step" data-step="4">
+            <div class="enquiry__confirmation">
+              <h4 class="enquiry__confirmation-title">Thank You, <span id="confirmClientName">Guest</span>.</h4>
+              <p class="enquiry__confirmation-text">
+                Your enquiry has been formatted and directed to our principal partners at <strong>skyscrapers.ranchi@gmail.com</strong>.
+              </p>
+              <p class="enquiry__confirmation-text" style="margin-top: 1rem;">
+                Our project concierge will contact you within 24 business hours to share floor plan folios or coordinate your private site visit.
+              </p>
+
+              <div style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                <a href="#" id="confirmMailtoAction" class="enquiry__submit" style="display: inline-block;">
+                  Open Direct Mail Client
+                </a>
+                <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%20Team%2C%20I%20am%20enquiring%20about%20Deonarayan%20Estate." target="_blank" rel="noopener noreferrer" class="cta-link" style="margin-top: 0.5rem;">
+                  <span>Connect directly on WhatsApp (+91 91213 14502)</span>
+                  <span class="cta-link__arrow" aria-hidden="true"></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PHASE 20 — FINAL BRAND FRAME & REGULATORY REGISTER
+         ============================================================ -->
+    <section class="final-brand section--dark" aria-label="Final Brand Signature">
+      <img src="assets/logofiles/logoskyscraper.svg" alt="Skyscraper Architectural Signature" class="final-brand__logo">
+      <p class="final-brand__tagline">"Bring home to quality"</p>
+      
+      <a href="#enquiry" class="cta-link">
+        <span>Start a Conversation</span>
+        <span class="cta-link__arrow" aria-hidden="true"></span>
+      </a>
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       REGULATORY FOOTER
+       ============================================================ -->
+  <footer class="footer section--charcoal" role="contentinfo">
+    <div>
+      <h5 class="footer__col-title">Project Site</h5>
+      <p class="footer__text">
+        <strong>Deonarayan Estate</strong><br>
+        Behind St. Stephen School, New Bus Stand,<br>
+        Forest Colony, Hazaribagh – 825301,<br>
+        Jharkhand, India
+      </p>
+    </div>
+
+    <div>
+      <h5 class="footer__col-title">Head Office</h5>
+      <p class="footer__text">
+        <strong>M/S Skyscraper</strong><br>
+        Ground Floor, Maurya Residency, Nalanda Colony,<br>
+        Bariatu, Ranchi – 834009,<br>
+        Jharkhand, India
+      </p>
+    </div>
+
+    <div>
+      <h5 class="footer__col-title">Direct Inquiries</h5>
+      <p class="footer__text">
+        T: +91 91213 14502 / 14503 / 14504<br>
+        E: <a href="mailto:skyscrapers.ranchi@gmail.com">skyscrapers.ranchi@gmail.com</a><br>
+        W: <a href="https://www.theskyscrapers.in" target="_blank" rel="noopener">www.theskyscrapers.in</a>
+      </p>
+      <p class="footer__text" style="margin-top: 0.75rem;">
+        <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" download="Deonarayan-Estate-Brochure.pdf" target="_blank" rel="noopener" class="footer__brochure-link" style="color: var(--accent-gold-light); text-decoration: underline; text-underline-offset: 4px; display: inline-flex; align-items: center; gap: 0.4rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Download Master Brochure (PDF)</span>
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <div class="footer__bottom section--charcoal">
+    <p class="footer__copyright">
+      &copy; 2026 M/S Skyscraper. All rights reserved. Architectural practice grounded in Jharkhand.
+    </p>
+    <p class="footer__rera">
+      Registration: <strong>JHARERA/PROJECT/49/2025</strong>
+    </p>
+  </div>
+
+  <!-- Persistent Understated Concierge Action Bar (Reveals after passing hero) -->
+  <aside class="persistent-cta" id="persistentCta" aria-label="Persistent Concierge CTA">
+    <a href="#enquiry" class="persistent-cta__btn">Enquire · Deonarayan Estate</a>
+  </aside>
+
+  <!-- Floating WhatsApp Concierge Button (Reveals only after scrolling past hero video) -->
+  <a href="https://wa.me/919121314502?text=Hello%20Skyscraper%2C%20I%20would%20like%20to%20enquire%20about%20Deonarayan%20Estate." 
+     target="_blank" 
+     rel="noopener noreferrer" 
+     class="floating-whatsapp" 
+     id="floatingWhatsapp" 
+     aria-label="Chat with Skyscraper Concierge on WhatsApp">
+    <div class="floating-whatsapp__icon">
+      <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.818 2.791.818 3.18 0 5.767-2.587 5.767-5.768.001-3.181-2.586-5.766-5.768-5.766zm9.969 5.766c0 5.514-4.486 10-10 10-1.748 0-3.385-.453-4.821-1.242l-5.179 1.354 1.378-5.034c-.878-1.503-1.378-3.247-1.378-5.078 0-5.514 4.486-10 10-10s10 4.486 10 10z"/></svg>
+    </div>
+    <span class="floating-whatsapp__text">Enquire on WhatsApp</span>
+  </a>
+
+  <!-- Interaction Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKYSCRAPER Website Master Build Guide</title>
+<style>
+body{font-family:Inter,Arial,sans-serif;background:#0f0f10;color:#f5f5f5;max-width:1100px;margin:auto;padding:40px;line-height:1.7}
+.card{background:#17181a;border:1px solid #2b2d31;border-radius:18px;padding:24px;margin:18px 0}
+.tag{display:inline-block;padding:6px 12px;border-radius:999px;background:#24262b;color:#cfcfcf;font-size:12px}
+h1,h2{margin-top:0}
+pre{white-space:pre-wrap;background:#101113;padding:18px;border-radius:12px;overflow:auto}
+button{padding:8px 12px}
+</style>
+<script>
+function copyText(id){
+ navigator.clipboard.writeText(document.getElementById(id).innerText);
+}
+</script>
+</head>
+<body>
+<h1>SKYSCRAPER — Website Master Build Guide</h1>
+<p>Film → Brand → Architecture → Deonarayan → Plans → Specifications → Anima → Contact</p>
+
+<script>
+const steps=[
+["Step 1","Existing Film Integration"],
+["Step 2","Brand Resolution"],
+["Step 3","What Is Skyscraper"],
+["Step 4","The Skyscraper Way"],
+["Step 5","Architectural Scroll Sequence"],
+["Step 6","Editorial Overlay System"],
+["Step 7","Deonarayan Estate"],
+["Step 8","Interactive 3D Building"],
+["Step 9","Plans Experience"],
+["Step 10","Specification Experience"],
+["Step 11","Location Experience"],
+["Step 12","Anima Sky Residency"],
+["Step 13","Future Vision"],
+["Step 14","Contact & Lead Generation"],
+["Step 15","Final Brand Frame & Optimization"]
+];
+document.write(steps.map((s,i)=>`
+<div class="card">
+<span class="tag">${s[0]}</span>
+<h2>${s[1]}</h2>
+<pre id="p${i+1}">Use the SKYSCRAPER workflow and project assets for this section. Maintain architectural-first storytelling, premium editorial presentation, and source-locked Deonarayan/Anima content.</pre>
+<button onclick="copyText('p${i+1}')">Copy</button>
+</div>`).join(''));
+</script>
+
+</body>
+</html>
