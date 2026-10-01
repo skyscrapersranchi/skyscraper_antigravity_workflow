@@ -689,25 +689,7 @@
         });
       }
     }
-        this.resizeObserver.disconnect();
-        this.resizeObserver = null;
-      }
-      if (this.sectionObserver) {
-        this.sectionObserver.disconnect();
-        this.sectionObserver = null;
-      }
 
-      // Explicitly close all ImageBitmap objects to release GPU textures
-      for (const [idx, frame] of this.decodedFrames.entries()) {
-        if (frame && typeof frame.close === 'function') {
-          frame.close();
-        }
-      }
-      this.decodedFrames.clear();
-      this.fetchQueue = [];
-      this.enqueuedSet.clear();
-      this.loadedSet.clear();
-    }
   }
 
   // ============================================================
