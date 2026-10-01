@@ -95,6 +95,8 @@
          Anchored by 16:9 Architectural Render (skyscraper-hero-bg-dark-16x9)
          ============================================================ -->
     <section class="brand-resolve" id="brandResolution" aria-label="Brand Resolution and Architectural Identity">
+      <!-- Selective Spatial Moment 1: Subtle Architectural Coordinate Depth Field -->
+      <canvas id="brandSpatialCanvas" class="brand-spatial-canvas" aria-hidden="true"></canvas>
       <div class="brand-resolve__inner">
         <div class="brand-resolve__content reveal">
           <div class="brand-resolve__badge">
@@ -357,8 +359,8 @@
             </p>
             <h3 class="arch-scroll__headline" id="scrollHeadline">A More Refined Way to Live.</h3>
             <p class="arch-scroll__subline" id="scrollSubline">Exterior Building Elevation & Arrival Approach</p>
-            <div class="arch-scroll__counter-wrap">
-              <span class="arch-scroll__counter" id="scrollFrameCounter">FRAME 0001 / 0825</span>
+            <div class="arch-scroll__counter-wrap" style="display: none;" aria-hidden="true">
+              <span class="arch-scroll__counter" id="scrollFrameCounter" style="display: none;">FRAME 0001 / 0825</span>
             </div>
           </div>
         </div>
@@ -428,6 +430,7 @@
             <span>Enquire on WhatsApp</span>
           </a>
         </div>
+        <p class="project-illustrative-caption" style="text-align: left; margin-top: 1.25rem;">Illustrative. Refer to the official brochure.</p>
       </div>
     </section>
 
@@ -472,6 +475,7 @@
           </div>
 
         </div>
+        <p class="project-illustrative-caption" style="margin-top: 1.75rem;">Illustrative. Refer to the official brochure.</p>
       </div>
     </section>
 
@@ -498,6 +502,7 @@
           id="planImage" 
           class="floor-plans__img">
       </div>
+      <p class="project-illustrative-caption">Illustrative. Refer to the official brochure.</p>
 
       <!-- Interactive Controls -->
       <div class="floor-plans__controls">
@@ -773,9 +778,11 @@
           <video 
             class="spec-film__video" 
             id="specificationVideo" 
-            controls 
+            autoplay 
+            loop 
+            muted 
             playsinline 
-            preload="metadata"
+            preload="auto"
             poster="assets/placeholder_images/goldenhourview.png">
             <source src="assets/deonarayan_asset/SPECIFICATION.mp4" type="video/mp4">
             <source src="SPECIFICATION.mp4" type="video/mp4">
@@ -849,7 +856,8 @@
           <!-- Monochromatic architectural map embed centered on Hazaribagh Forest Colony / New Bus Stand -->
           <iframe 
             title="Deonarayan Estate Location Map"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14603.585721867168!2d85.3524956!3d23.9902641!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f49c06342898cf%3A0x6b1ec64627ef6781!2sForest%20Colony%2C%20Hazaribagh%2C%20Jharkhand%20825301!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+            src="about:blank"
+            data-cookie-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14603.585721867168!2d85.3524956!3d23.9902641!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f49c06342898cf%3A0x6b1ec64627ef6781!2sForest%20Colony%2C%20Hazaribagh%2C%20Jharkhand%20825301!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
             allowfullscreen="" 
             loading="lazy" 
             referrerpolicy="no-referrer-when-downgrade">
@@ -867,6 +875,7 @@
         <div class="sold-out__image reveal">
           <img src="assets/logofiles/animaskyrender.png" alt="Anima Sky Residency Exterior Perspective">
           <span class="sold-out__badge">SOLD OUT</span>
+          <p class="project-illustrative-caption">Illustrative. Refer to the official brochure.</p>
         </div>
 
         <div class="sold-out__content reveal reveal--delay-2">
@@ -891,6 +900,8 @@
          "The work continues" — without inventing speculative projects
          ============================================================ -->
     <section class="future" id="future" aria-label="Future Direction">
+      <!-- Selective Spatial Moment 2: Subtle Architectural Horizon Perspective & Spatial Ring -->
+      <canvas id="futureSpatialCanvas" class="future-spatial-canvas" aria-hidden="true"></canvas>
       <div class="future__content reveal">
         <p class="type-meta" style="color: var(--accent-gold-light); margin-bottom: 1rem;">Looking Forward</p>
         <h3 class="future__title">THE WORK CONTINUES</h3>
@@ -1092,6 +1103,7 @@
 
             <div>
               <button type="submit" class="enquiry__submit" id="enquirySubmit">Transmit Enquiry</button>
+              <p class="enquiry__consent-text">By submitting, you agree to be contacted by Skyscraper about your enquiry by phone, WhatsApp or email.</p>
             </div>
             
             <button type="button" class="enquiry__back" data-enquiry-back>← Previous Step</button>
@@ -1181,6 +1193,9 @@
   </footer>
 
   <div class="footer__bottom section--charcoal">
+    <p class="footer__disclaimer-note">
+      Illustrative. Refer to the official brochure. <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" target="_blank" rel="noopener noreferrer" class="footer__disclaimer-link">View brochure</a>
+    </p>
     <p class="footer__copyright">
       &copy; 2026 M/S Skyscraper. All rights reserved. Architectural practice grounded in Jharkhand.
     </p>
@@ -1207,7 +1222,37 @@
     <span class="floating-whatsapp__text">Enquire on WhatsApp</span>
   </a>
 
+  <!-- A. Disclaimer Notice (Accessible Modal Dialog) -->
+  <div class="disclaimer-modal" id="disclaimerModal" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle" aria-describedby="disclaimerDesc">
+    <div class="disclaimer-modal__backdrop" id="disclaimerBackdrop"></div>
+    <div class="disclaimer-modal__card" role="document">
+      <h3 class="disclaimer-modal__title" id="disclaimerTitle">Please note</h3>
+      <p class="disclaimer-modal__body" id="disclaimerDesc">
+        Images, renders, floor plans, specifications and amenities shown on this website are illustrative and may not be 100% accurate. For final and authoritative details, please refer to the official project brochure.
+        <br>
+        <a href="assets/brochure_floorplan_deonarayan/Brochure.pdf" target="_blank" rel="noopener noreferrer" class="disclaimer-modal__link">View brochure</a>
+      </p>
+      <div class="disclaimer-modal__actions">
+        <button type="button" class="disclaimer-modal__btn" id="disclaimerDismissBtn">I understand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. Cookie / Consent Bar -->
+  <aside class="cookie-bar" id="cookieBar" aria-label="Cookie Consent">
+    <div class="cookie-bar__inner">
+      <p class="cookie-bar__text">We use cookies to improve your experience.</p>
+      <div class="cookie-bar__actions">
+        <button type="button" class="cookie-bar__btn cookie-bar__btn--decline" id="cookieDeclineBtn">Decline</button>
+        <button type="button" class="cookie-bar__btn cookie-bar__btn--accept" id="cookieAcceptBtn">Accept</button>
+      </div>
+    </div>
+  </aside>
+
   <!-- Interaction Scripts -->
+  <script src="crm-submit.js"></script>
+  <script src="public/lenis.min.js"></script>
+  <script src="public/three.min.js" defer></script>
   <script src="app.js"></script>
 </body>
 </html>

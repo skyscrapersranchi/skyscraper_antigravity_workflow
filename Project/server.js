@@ -21,6 +21,15 @@ const MIME_TYPES = {
 
 const server = http.createServer((req, res) => {
   let reqUrl = decodeURI(req.url.split('?')[0]);
+
+  // Hidden admin route: redirects to live Supabase CRM
+  if (reqUrl === '/admin' || reqUrl === '/admin/') {
+    res.writeHead(302, {
+      'Location': 'https://skyscrapers-skyline-crm.vercel.app'
+    });
+    return res.end();
+  }
+
   if (reqUrl === '/') reqUrl = '/index.html';
 
   const filePath = path.join(ROOT, reqUrl);
