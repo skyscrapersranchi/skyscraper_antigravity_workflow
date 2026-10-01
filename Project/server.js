@@ -68,12 +68,13 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    // Default static file streaming
+    // Static file streaming with realistic Cache-Control matching vercel.json
+    const cacheHeader = ext === '.html' ? 'no-cache' : 'public, max-age=86400, stale-while-revalidate=604800';
     res.writeHead(200, {
       'Content-Length': stats.size,
       'Content-Type': contentType,
       'Accept-Ranges': 'bytes',
-      'Cache-Control': 'no-cache'
+      'Cache-Control': cacheHeader
     });
     fs.createReadStream(filePath).pipe(res);
   });

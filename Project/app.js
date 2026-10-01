@@ -122,6 +122,13 @@
     }
   };
 
+  // --- LIFECYCLE & PERFORMANCE REGISTRIES ---
+  let isInitialized = false;
+  let globalAbortController = null;
+  let frameScrollerInstance = null;
+  let activeObservers = [];
+  let activeRafIds = [];
+
   // --- DOM REFERENCES ---
   const dom = {};
 
@@ -183,7 +190,7 @@
   // ============================================================
   // SECTION 1: CINEMATIC OPENING (ALWAYS MUTED, NO SOUND TOGGLE)
   // ============================================================
-  function initHeroFilm() {
+  function initHeroFilm(signal) {
     if (!dom.heroVideo) return;
 
     // Enforce permanent muted state per strict requirement
@@ -199,6 +206,9 @@
       });
     }
 
+    const clickOpts = {};
+    if (signal) clickOpts.signal = signal;
+
     // Replay button
     if (dom.heroReplayBtn) {
       dom.heroReplayBtn.addEventListener('click', () => {
@@ -210,13 +220,13 @@
         } else {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-      });
+      }, clickOpts);
     }
 
     // Video loaded state
     dom.heroVideo.addEventListener('playing', () => {
       if (dom.heroLoader) dom.heroLoader.classList.add('hidden');
-    });
+    }, clickOpts);
 
     // When film completes: seamlessly resolve into Brand Frame
     dom.heroVideo.addEventListener('ended', () => {
@@ -232,7 +242,7 @@
           triggerPostHeroCompliance();
         }
       }, 700);
-    });
+    }, clickOpts);
 
     // Optimize CPU / GPU: Pause hero video when scrolled past hero
     const heroObserver = new IntersectionObserver(
@@ -248,6 +258,9 @@
       { threshold: 0.1 }
     );
     heroObserver.observe(dom.heroVideo);
+    if (Array.isArray(activeObservers)) {
+      activeObservers.push(heroObserver);
+    }
   }
 
   function revealBrandElements() {
@@ -257,21 +270,56 @@
   }
 
   // ============================================================
-  // SECTION 2: 35-SECOND SCROLL SEQUENCE (SHARP 4K CANVAS ENGINE)
+  // ============================================================
+  // SECTION 2: 35-SECOND SCROLL SEQUENCE (HIGH-PERFORMANCE 60 FPS CANVAS ENGINE)
+  // Bounded concurrency (5), off-thread createImageBitmap/decode(),
+  // LRU decoded memory window, zero-allocation render loop, DPR capped at 2.
   // ============================================================
   class FrameScroller {
-    constructor() {
+    constructor(signal) {
       this.canvas = dom.scrollCanvas;
       if (!this.canvas) return;
       this.ctx = this.canvas.getContext('2d', { alpha: false });
-      this.frames = new Map();
+      this.totalFrames = TOTAL_FRAMES;
       this.currentFrameIndex = 1;
       this.targetFrameIndex = 1;
+      this.lastQueuedFrame = 1;
       this.isRendering = false;
-      this.lastRenderedIndex = -1;
-      this.totalFrames = TOTAL_FRAMES;
-      this.preloadedCount = 0;
-      this.activePhaseIndex = -1;
+      this.lastDrawnFrame = -1;
+      this.lastDrawnFallbackIndex = -1;
+      this.isPaused = false;
+      this.signal = signal;
+      this.activeSceneId = null;
+
+      // Metrics caching to prevent getBoundingClientRect() during scrolling
+      this.sectionTop = 0;
+      this.sectionScrollHeight = 0;
+
+      // Bound decoded frame window in RAM
+      const isMobile = window.innerWidth <= 768;
+      const deviceMem = (navigator.deviceMemory && navigator.deviceMemory < 4) || false;
+      this.maxDecodedWindow = isMobile || deviceMem ? 24 : 50;
+      this.decodedFrames = new Map(); // frameIndex -> ImageBitmap | HTMLImageElement
+
+      // Concurrency & Queues
+      this.maxDecodeConcurrency = 5;
+      this.activeDecodeFetches = 0;
+      this.decodeQueue = [];
+      this.enqueuedDecodeSet = new Set();
+
+      // Background HTTP cache warmer
+      this.maxPrefetchConcurrency = 4;
+      this.activePrefetches = 0;
+      this.prefetchQueue = [];
+      this.prefetchedSet = new Set();
+
+      // Pre-allocated bounds to prevent per-frame garbage collection / allocation
+      this._bounds = {
+        drawWidth: 0,
+        drawHeight: 0,
+        offsetX: 0,
+        offsetY: 0
+      };
 
       this.init();
     }
@@ -284,125 +332,238 @@
       return `${FRAME_BASE_PATH}${this.formatFrameNum(index)}${FRAME_EXT}`;
     }
 
-    loadImage(index) {
-      if (this.frames.has(index)) {
-        return Promise.resolve(this.frames.get(index));
-      }
+    updateSectionMetrics() {
+      if (!dom.archSection) return;
+      const rect = dom.archSection.getBoundingClientRect();
+      this.sectionTop = rect.top + window.scrollY;
+      this.sectionScrollHeight = dom.archSection.offsetHeight - window.innerHeight;
+    }
+
+    fetchAndDecode(index) {
+      const path = this.getFramePath(index);
       return new Promise((resolve) => {
         const img = new Image();
-        img.src = this.getFramePath(index);
-        img.onload = () => {
-          this.frames.set(index, img);
-          resolve(img);
-        };
-        img.onerror = () => {
-          resolve(null);
-        };
+        img.src = path;
+        if (typeof img.decode === 'function') {
+          img.decode().then(() => resolve(img)).catch(() => {
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+          });
+        } else {
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+        }
       });
     }
 
-    preloadInitialBatch() {
-      const initialLoads = [];
-      for (let i = 1; i <= 30; i++) {
-        initialLoads.push(this.loadImage(i));
+    pumpDecodeQueue() {
+      while (this.activeDecodeFetches < this.maxDecodeConcurrency && this.decodeQueue.length > 0) {
+        const index = this.decodeQueue.shift();
+        this.enqueuedDecodeSet.delete(index);
+
+        if (this.decodedFrames.has(index)) {
+          continue;
+        }
+
+        this.activeDecodeFetches++;
+        this.fetchAndDecode(index).then((decoded) => {
+          this.activeDecodeFetches--;
+          if (decoded) {
+            this.prefetchedSet.add(index);
+            this.decodedFrames.set(index, decoded);
+            this.pruneDecodedFrames();
+
+            // If we are currently at this frame and waiting for it, render immediately
+            const currentRounded = Math.round(this.currentFrameIndex);
+            if (currentRounded === index && this.lastDrawnFrame !== index) {
+              this.renderFrame(index);
+            }
+          }
+          this.pumpDecodeQueue();
+        }).catch(() => {
+          this.activeDecodeFetches--;
+          this.pumpDecodeQueue();
+        });
       }
-      Promise.all(initialLoads).then(() => {
-        this.renderFrame(1);
-      });
+    }
+
+    pruneDecodedFrames() {
+      if (this.decodedFrames.size <= this.maxDecodedWindow + 10) return;
+
+      const center = Math.round(this.currentFrameIndex);
+      const halfWindow = Math.round(this.maxDecodedWindow / 2);
+
+      for (const [idx, frame] of this.decodedFrames.entries()) {
+        if (Math.abs(idx - center) > halfWindow + 8) {
+          if (frame && typeof frame.close === 'function') {
+            frame.close();
+          }
+          this.decodedFrames.delete(idx);
+        }
+      }
     }
 
     queueNeighborFrames(centerIndex) {
       const isForward = this.targetFrameIndex >= this.currentFrameIndex;
       const windowForward = isForward ? 35 : 15;
-      const windowBack = isForward ? 12 : 30;
-      for (let i = centerIndex - windowBack; i <= centerIndex + windowForward; i++) {
-        if (i >= 1 && i <= this.totalFrames && !this.frames.has(i)) {
-          this.loadImage(i);
+      const windowBack = isForward ? 12 : 25;
+
+      const priorityList = [];
+      if (isForward) {
+        for (let i = centerIndex; i <= Math.min(this.totalFrames, centerIndex + windowForward); i++) {
+          priorityList.push(i);
         }
+        for (let i = centerIndex - 1; i >= Math.max(1, centerIndex - windowBack); i--) {
+          priorityList.push(i);
+        }
+      } else {
+        for (let i = centerIndex; i >= Math.max(1, centerIndex - windowBack); i--) {
+          priorityList.push(i);
+        }
+        for (let i = centerIndex + 1; i <= Math.min(this.totalFrames, centerIndex + windowForward); i++) {
+          priorityList.push(i);
+        }
+      }
+
+      // Keep decode queue tightly focused on the immediate viewport window
+      this.decodeQueue = priorityList.filter((idx) => !this.decodedFrames.has(idx));
+      this.enqueuedDecodeSet = new Set(this.decodeQueue);
+      this.pumpDecodeQueue();
+    }
+
+    // Warm compressed files into HTTP cache with low priority
+    pumpPrefetchQueue() {
+      while (this.activePrefetches < this.maxPrefetchConcurrency && this.prefetchQueue.length > 0) {
+        const index = this.prefetchQueue.shift();
+        if (this.prefetchedSet.has(index) || this.decodedFrames.has(index)) {
+          continue;
+        }
+
+        this.activePrefetches++;
+        const path = this.getFramePath(index);
+        fetch(path, { priority: 'low' }).then(() => {
+          this.prefetchedSet.add(index);
+          this.activePrefetches--;
+          this.pumpPrefetchQueue();
+        }).catch(() => {
+          this.activePrefetches--;
+          this.pumpPrefetchQueue();
+        });
       }
     }
 
+    startBackgroundPreload() {
+      // In scroll order from 1 to TOTAL_FRAMES right after first paint
+      const allFrames = [];
+      for (let i = 1; i <= this.totalFrames; i++) {
+        if (!this.prefetchedSet.has(i) && !this.decodedFrames.has(i)) {
+          allFrames.push(i);
+        }
+      }
+      this.prefetchQueue = allFrames;
+      this.pumpPrefetchQueue();
+    }
+
     resize() {
-      if (!this.canvas) return;
+      if (!this.canvas || !this.canvas.parentElement) return;
       const rect = this.canvas.parentElement.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       this.width = rect.width;
       this.height = rect.height;
+      this.updateSectionMetrics();
 
-      // Set backing store dimensions to exact physical device pixels
-      this.canvas.width = Math.floor(rect.width * dpr);
-      this.canvas.height = Math.floor(rect.height * dpr);
+      const targetCanvasWidth = Math.floor(rect.width * dpr);
+      const targetCanvasHeight = Math.floor(rect.height * dpr);
 
-      // Set CSS dimensions explicitly to prevent downscale distortion
-      this.canvas.style.width = Math.floor(rect.width) + 'px';
-      this.canvas.style.height = Math.floor(rect.height) + 'px';
+      if (this.canvas.width !== targetCanvasWidth || this.canvas.height !== targetCanvasHeight) {
+        this.canvas.width = targetCanvasWidth;
+        this.canvas.height = targetCanvasHeight;
+        this.canvas.style.width = Math.floor(rect.width) + 'px';
+        this.canvas.style.height = Math.floor(rect.height) + 'px';
 
-      // Reset transform matrix
-      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.imageSmoothingEnabled = true;
+        this.ctx.imageSmoothingQuality = 'high';
 
-      // Enable high-quality image smoothing
-      this.ctx.imageSmoothingEnabled = true;
-      this.ctx.imageSmoothingQuality = 'high';
+        this.lastDrawnFrame = -1;
+        this.lastDrawnFallbackIndex = -1;
+      }
 
-      this.lastRenderedIndex = -1;
       this.renderFrame(Math.round(this.currentFrameIndex));
     }
 
     renderFrame(frameIndex) {
-      const img = this.frames.get(frameIndex);
-      if (!img || !img.complete || img.naturalWidth === 0) {
+      // Redraw ONLY when computed frame index changes
+      if (frameIndex === this.lastDrawnFrame) {
+        return;
+      }
+
+      const img = this.decodedFrames.get(frameIndex);
+      if (!img) {
+        // Fallback: search closest cached neighbor frame (maintains today's exact fallback behavior)
         let fallback = null;
+        let fallbackIndex = -1;
         for (let dist = 1; dist < 40; dist++) {
-          if (this.frames.has(frameIndex - dist)) {
-            fallback = this.frames.get(frameIndex - dist);
+          if (this.decodedFrames.has(frameIndex - dist)) {
+            fallbackIndex = frameIndex - dist;
+            fallback = this.decodedFrames.get(fallbackIndex);
             break;
-          } else if (this.frames.has(frameIndex + dist)) {
-            fallback = this.frames.get(frameIndex + dist);
+          } else if (this.decodedFrames.has(frameIndex + dist)) {
+            fallbackIndex = frameIndex + dist;
+            fallback = this.decodedFrames.get(fallbackIndex);
             break;
           }
         }
-        if (fallback && fallback.complete) {
-          this.drawCover(fallback);
+        if (fallback) {
+          if (this.lastDrawnFallbackIndex !== fallbackIndex) {
+            this.drawCover(fallback);
+            this.lastDrawnFallbackIndex = fallbackIndex;
+          }
         }
         return;
       }
 
       this.drawCover(img);
-      this.lastRenderedIndex = frameIndex;
+      this.lastDrawnFrame = frameIndex;
+      this.lastDrawnFallbackIndex = -1;
     }
 
     drawCover(img) {
-      // Work directly in high-res backing store coordinates for needle-sharp 4K rendering
+      // Zero per-frame allocations: reuse pre-allocated this._bounds coordinates
       const cWidth = this.canvas.width;
       const cHeight = this.canvas.height;
-      const iWidth = img.naturalWidth;
-      const iHeight = img.naturalHeight;
+      const iWidth = img.naturalWidth || img.width;
+      const iHeight = img.naturalHeight || img.height;
 
       const imgRatio = iWidth / iHeight;
       const canvasRatio = cWidth / cHeight;
 
-      let drawWidth, drawHeight, offsetX, offsetY;
-
       if (canvasRatio > imgRatio) {
-        drawWidth = cWidth;
-        drawHeight = cWidth / imgRatio;
-        offsetX = 0;
-        offsetY = (cHeight - drawHeight) / 2;
+        this._bounds.drawWidth = cWidth;
+        this._bounds.drawHeight = cWidth / imgRatio;
+        this._bounds.offsetX = 0;
+        this._bounds.offsetY = (cHeight - this._bounds.drawHeight) / 2;
       } else {
-        drawHeight = cHeight;
-        drawWidth = cHeight * imgRatio;
-        offsetX = (cWidth - drawWidth) / 2;
-        offsetY = 0;
+        this._bounds.drawHeight = cHeight;
+        this._bounds.drawWidth = cHeight * imgRatio;
+        this._bounds.offsetX = (cWidth - this._bounds.drawWidth) / 2;
+        this._bounds.offsetY = 0;
       }
 
       this.ctx.fillStyle = '#0a0a0a';
       this.ctx.fillRect(0, 0, cWidth, cHeight);
-      this.ctx.drawImage(img, Math.round(offsetX), Math.round(offsetY), Math.round(drawWidth), Math.round(drawHeight));
+      this.ctx.drawImage(
+        img,
+        Math.round(this._bounds.offsetX),
+        Math.round(this._bounds.offsetY),
+        Math.round(this._bounds.drawWidth),
+        Math.round(this._bounds.drawHeight)
+      );
     }
 
     updatePhase(frameIndex) {
-      const fadeBuffer = 10; // 8-12 frame ramp
+      const fadeBuffer = 10;
       let activeScene = null;
       let opacity = 0;
 
@@ -441,7 +602,6 @@
         }
       }
 
-      // Smooth opacity & subtle lift during fade
       if (dom.archScrollOverlay) {
         dom.archScrollOverlay.style.opacity = opacity.toFixed(3);
         const yOffset = (1 - opacity) * 8;
@@ -460,15 +620,18 @@
 
     onScroll() {
       if (!dom.archSection || this.isPaused) return;
-      const rect = dom.archSection.getBoundingClientRect();
-      const scrollHeight = dom.archSection.offsetHeight - window.innerHeight;
-      if (scrollHeight <= 0) return;
+      if (!this.sectionScrollHeight) this.updateSectionMetrics();
+      if (this.sectionScrollHeight <= 0) return;
 
-      const scrollProgress = Math.max(0, Math.min(1, -rect.top / scrollHeight));
+      const relativeY = window.scrollY - this.sectionTop;
+      const scrollProgress = Math.max(0, Math.min(1, relativeY / this.sectionScrollHeight));
       const targetFrame = Math.round(1 + scrollProgress * (this.totalFrames - 1));
       this.targetFrameIndex = Math.max(1, Math.min(this.totalFrames, targetFrame));
 
-      this.queueNeighborFrames(this.targetFrameIndex);
+      if (Math.abs(this.targetFrameIndex - this.lastQueuedFrame) >= 2) {
+        this.lastQueuedFrame = this.targetFrameIndex;
+        this.queueNeighborFrames(this.targetFrameIndex);
+      }
 
       if (!this.isRendering) {
         this.isRendering = true;
@@ -477,7 +640,7 @@
     }
 
     loop() {
-      if (this.isPaused) {
+      if (this.isPaused || document.hidden) {
         this.isRendering = false;
         return;
       }
@@ -486,16 +649,14 @@
       const absDiff = Math.abs(diff);
 
       if (absDiff > 0.04) {
-        // Velocity-adaptive cinematic damping for velvety smooth walkthrough feel
         const lerpFactor = Math.min(0.22, 0.11 + absDiff * 0.0035);
         this.currentFrameIndex += diff * lerpFactor;
         const rounded = Math.round(this.currentFrameIndex);
-        if (rounded !== this.lastRenderedIndex) {
+        if (rounded !== this.lastDrawnFrame) {
           this.renderFrame(rounded);
           this.updatePhase(rounded);
         }
 
-        // Steadicam focal breathing scale during active camera movement
         if (this.canvas) {
           const velocity = Math.min(1, absDiff / 25);
           const focalScale = 1.0 + velocity * 0.006;
@@ -504,6 +665,7 @@
 
         requestAnimationFrame(() => this.loop());
       } else {
+        // Target reached: draw exact final frame and stop rAF loop (idle pause)
         this.currentFrameIndex = this.targetFrameIndex;
         const rounded = Math.round(this.currentFrameIndex);
         this.renderFrame(rounded);
@@ -518,22 +680,82 @@
     init() {
       this.isPaused = false;
       this.resize();
-      this.preloadInitialBatch();
-      window.addEventListener('resize', () => this.resize());
-      window.addEventListener('scroll', () => this.onScroll(), { passive: true });
+
+      // Debounced ResizeObserver for window resize and DPR changes
+      if ('ResizeObserver' in window && this.canvas.parentElement) {
+        let rAFResize = null;
+        this.resizeObserver = new ResizeObserver(() => {
+          if (rAFResize) cancelAnimationFrame(rAFResize);
+          rAFResize = requestAnimationFrame(() => this.resize());
+        });
+        this.resizeObserver.observe(this.canvas.parentElement);
+      }
+
+      // Initial batch load then full background sequence right after first paint
+      requestAnimationFrame(() => {
+        this.queueNeighborFrames(1);
+        setTimeout(() => {
+          this.startBackgroundPreload();
+        }, 120);
+      });
+
+      // Passive scroll listener
+      const scrollOpts = { passive: true };
+      if (this.signal) scrollOpts.signal = this.signal;
+      window.addEventListener('scroll', () => this.onScroll(), scrollOpts);
+
+      // Handle tab visibility change
+      const visOpts = {};
+      if (this.signal) visOpts.signal = this.signal;
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && !this.isPaused && Math.abs(this.targetFrameIndex - this.currentFrameIndex) > 0.04) {
+          if (!this.isRendering) {
+            this.isRendering = true;
+            requestAnimationFrame(() => this.loop());
+          }
+        }
+      }, visOpts);
 
       // Pause rendering when architectural walkthrough is out of viewport
       if ('IntersectionObserver' in window && dom.archSection) {
-        const obs = new IntersectionObserver((entries) => {
+        this.sectionObserver = new IntersectionObserver((entries) => {
           entries.forEach((entry) => {
             this.isPaused = !entry.isIntersecting;
             if (entry.isIntersecting && !this.isRendering) {
               this.onScroll();
             }
           });
-        }, { rootMargin: '100px 0px 100px 0px', threshold: 0.01 });
-        obs.observe(dom.archSection);
+        }, { rootMargin: '120px 0px 120px 0px', threshold: 0.01 });
+        this.sectionObserver.observe(dom.archSection);
+        if (Array.isArray(activeObservers)) {
+          activeObservers.push(this.sectionObserver);
+        }
       }
+    }
+
+    destroy() {
+      this.isPaused = true;
+      this.isRendering = false;
+
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect();
+        this.resizeObserver = null;
+      }
+      if (this.sectionObserver) {
+        this.sectionObserver.disconnect();
+        this.sectionObserver = null;
+      }
+
+      // Explicitly close all ImageBitmap objects to release GPU textures
+      for (const [idx, frame] of this.decodedFrames.entries()) {
+        if (frame && typeof frame.close === 'function') {
+          frame.close();
+        }
+      }
+      this.decodedFrames.clear();
+      this.fetchQueue = [];
+      this.enqueuedSet.clear();
+      this.loadedSet.clear();
     }
   }
 
@@ -909,7 +1131,7 @@
   // ============================================================
   // SECTION 5: NAVIGATION & PERSISTENT CTAs (NO OBSTRUCTION ON HERO)
   // ============================================================
-  function initNavigation() {
+  function initNavigation(signal) {
     let isSuppressed = false;
 
     // Intelligent concealment when user arrives at Enquiry form or Regulatory Footer
@@ -933,9 +1155,13 @@
 
       if (dom.enquirySection) suppressObserver.observe(dom.enquirySection);
       if (dom.footer) suppressObserver.observe(dom.footer);
+      if (Array.isArray(activeObservers)) {
+        activeObservers.push(suppressObserver);
+      }
     }
 
-    window.addEventListener('scroll', () => {
+    let navScrollTicking = false;
+    const updateNavScroll = () => {
       const currentScrollY = window.scrollY;
       const heroHeight = window.innerHeight * 0.9;
 
@@ -955,7 +1181,20 @@
       if (dom.floatingWhatsapp) {
         dom.floatingWhatsapp.classList.toggle('visible', shouldShowCtas);
       }
-    }, { passive: true });
+      navScrollTicking = false;
+    };
+
+    const scrollOpts = { passive: true };
+    if (signal) scrollOpts.signal = signal;
+    window.addEventListener('scroll', () => {
+      if (!navScrollTicking) {
+        navScrollTicking = true;
+        requestAnimationFrame(updateNavScroll);
+      }
+    }, scrollOpts);
+
+    const clickOpts = {};
+    if (signal) clickOpts.signal = signal;
 
     if (dom.navMenuBtn && dom.navOverlay) {
       dom.navMenuBtn.addEventListener('click', () => {
@@ -963,14 +1202,14 @@
         dom.navMenuBtn.classList.toggle('active', !isOpen);
         dom.navOverlay.classList.toggle('active', !isOpen);
         document.body.style.overflow = !isOpen ? 'hidden' : '';
-      });
+      }, clickOpts);
 
       dom.navOverlayLinks.forEach((link) => {
         link.addEventListener('click', () => {
           dom.navMenuBtn.classList.remove('active');
           dom.navOverlay.classList.remove('active');
           document.body.style.overflow = '';
-        });
+        }, clickOpts);
       });
     }
   }
@@ -1057,6 +1296,7 @@
       let ticking = false;
       const updatePhilosophyKinetic = () => {
         const vh = window.innerHeight;
+        const updates = [];
         philosophyItems.forEach((item) => {
           const word = item.querySelector('.philosophy__word');
           if (!word) return;
@@ -1065,9 +1305,12 @@
             const centerOffset = (vh / 2 - (rect.top + rect.height / 2)) / vh;
             const yShift = centerOffset * -20;
             const tracking = 0.03 + (1 - Math.min(1, Math.abs(centerOffset) * 2)) * 0.035;
-            word.style.transform = `translateY(${yShift.toFixed(1)}px) translateZ(0)`;
-            word.style.letterSpacing = `${tracking.toFixed(3)}em`;
+            updates.push({ word, yShift, tracking });
           }
+        });
+        updates.forEach(({ word, yShift, tracking }) => {
+          word.style.transform = `translateY(${yShift.toFixed(1)}px) translateZ(0)`;
+          word.style.letterSpacing = `${tracking.toFixed(3)}em`;
         });
         ticking = false;
       };
@@ -1111,6 +1354,7 @@
         let ticking = false;
         const updateParallax = () => {
           const vh = window.innerHeight;
+          const updates = [];
           parallaxImages.forEach((img) => {
             const parent = img.parentElement;
             if (!parent) return;
@@ -1118,8 +1362,11 @@
             if (rect.bottom > 0 && rect.top < vh) {
               const progress = (vh - rect.top) / (vh + rect.height);
               const yOffset = (progress - 0.5) * -28;
-              img.style.transform = `translate3d(0, ${yOffset.toFixed(1)}px, 0) scale(1.06)`;
+              updates.push({ img, yOffset });
             }
+          });
+          updates.forEach(({ img, yOffset }) => {
+            img.style.transform = `translate3d(0, ${yOffset.toFixed(1)}px, 0) scale(1.06)`;
           });
           ticking = false;
         };
@@ -1412,7 +1659,7 @@
   // SPECIFICATIONS VIDEO MOTION WINDOW
   // Must remain real video, autoplay, loop, muted, inline, zero audio
   // ============================================================
-  function initSpecificationVideo() {
+  function initSpecificationVideo(signal) {
     const video = dom.specVideo || document.getElementById('specificationVideo');
     if (!video) return;
 
@@ -1448,24 +1695,36 @@
 
     attemptPlay();
 
-    // IntersectionObserver to optimize and resume playing when in view
+    // IntersectionObserver to optimize and resume playing when in view, pause when off-screen
     if ('IntersectionObserver' in window) {
       const specObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             attemptPlay();
+          } else if (!video.paused) {
+            video.pause();
           }
         });
       }, { threshold: 0.1 });
       specObserver.observe(video);
+      if (Array.isArray(activeObservers)) {
+        activeObservers.push(specObserver);
+      }
     }
+
+    const vidOpts = {};
+    if (signal) vidOpts.signal = signal;
 
     // Ensure it continues playing
     video.addEventListener('pause', () => {
-      if (!video.seeking) {
-        setTimeout(attemptPlay, 100);
+      if (!video.seeking && ('IntersectionObserver' in window ? true : true)) {
+        // Only retry if not intentionally paused offscreen
+        const rect = video.getBoundingClientRect();
+        if (rect.bottom > 0 && rect.top < window.innerHeight) {
+          setTimeout(attemptPlay, 100);
+        }
       }
-    });
+    }, vidOpts);
 
     // Enforce silence on volume changes
     video.addEventListener('volumechange', () => {
@@ -1473,7 +1732,7 @@
         video.muted = true;
         video.volume = 0;
       }
-    });
+    }, vidOpts);
   }
 
   // ============================================================
@@ -1516,11 +1775,13 @@
 
   // ============================================================
   // LENIS SMOOTH SCROLLING ENGINE
-  // Controlled, premium, cinematic, natural without breaking navigation
+  // Exactly ONE Lenis instance, settings identical to baseline.
+  // Wired to ScrollTrigger/GSAP if present, otherwise rAF loop with tab visibility pause.
   // ============================================================
   let lenisInstance = null;
+  let lenisRafId = null;
 
-  function initLenisSmoothScroll() {
+  function initLenisSmoothScroll(signal) {
     if (typeof Lenis === 'undefined') return;
 
     try {
@@ -1535,19 +1796,48 @@
         infinite: false,
       });
 
-      function raf(time) {
-        lenisInstance.raf(time);
-        requestAnimationFrame(raf);
+      window.lenis = lenisInstance;
+
+      // Wire with ScrollTrigger and GSAP ticker if available in runtime
+      if (typeof window.ScrollTrigger !== 'undefined' && lenisInstance.on) {
+        lenisInstance.on('scroll', window.ScrollTrigger.update);
       }
-      requestAnimationFrame(raf);
+      if (typeof window.gsap !== 'undefined' && window.gsap.ticker) {
+        window.gsap.ticker.add((time) => {
+          if (lenisInstance) lenisInstance.raf(time * 1000);
+        });
+        window.gsap.ticker.lagSmoothing(0);
+      } else {
+        function raf(time) {
+          if (!lenisInstance) return;
+          lenisInstance.raf(time);
+          if (!document.hidden) {
+            lenisRafId = requestAnimationFrame(raf);
+          }
+        }
+        lenisRafId = requestAnimationFrame(raf);
+        activeRafIds.push(lenisRafId);
+
+        const visOpts = {};
+        if (signal) visOpts.signal = signal;
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && lenisInstance) {
+            if (lenisRafId) cancelAnimationFrame(lenisRafId);
+            lenisRafId = requestAnimationFrame(raf);
+            activeRafIds.push(lenisRafId);
+          }
+        }, visOpts);
+      }
 
       // Anchor link clicks for smooth Lenis scrolling
+      const clickOpts = {};
+      if (signal) clickOpts.signal = signal;
       document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener('click', (e) => {
           const targetId = anchor.getAttribute('href');
           if (targetId && targetId !== '#') {
             const targetEl = document.querySelector(targetId);
-            if (targetEl) {
+            if (targetEl && lenisInstance) {
               e.preventDefault();
               lenisInstance.scrollTo(targetEl, {
                 offset: -40,
@@ -1556,10 +1846,120 @@
               });
             }
           }
-        });
+        }, clickOpts);
       });
     } catch (err) {
       console.warn('Lenis smooth scroll fallback to native:', err);
+    }
+  }
+
+  // ============================================================
+  // TIERED MEDIA LOADER (LOOKAHEAD & BACKGROUND IDLE SCHEDULER)
+  // Tier 0: Preloaded hero poster, first frame & critical fonts
+  // Tier 1: Lookahead 2 screens ahead (or 1 on 2g/save-data) to pre-decode images & promote video
+  // Tier 2: Idle background loading after window load (max 3 concurrent)
+  // ============================================================
+  function initTieredMediaLoader(signal) {
+    const hasDataSaver = Boolean(
+      navigator.connection && 
+      (navigator.connection.saveData || navigator.connection.effectiveType === '2g')
+    );
+
+    const sections = Array.from(document.querySelectorAll('section, footer'));
+    const lookaheadMargin = hasDataSaver ? '800px 0px' : '1500px 0px';
+
+    const promoteSectionMedia = (section) => {
+      // 1. Pre-decode any upcoming section images before visitor scrolls to them
+      const images = section.querySelectorAll('img');
+      images.forEach((img) => {
+        if (img.src && typeof img.decode === 'function' && !img.complete) {
+          img.decode().catch(() => {});
+        }
+      });
+
+      // 2. Upgrade upcoming video to preload="auto"
+      const videos = section.querySelectorAll('video');
+      videos.forEach((video) => {
+        if (video.getAttribute('preload') !== 'auto') {
+          video.setAttribute('preload', 'auto');
+          video.preload = 'auto';
+        }
+      });
+    };
+
+    if ('IntersectionObserver' in window) {
+      const tier1Observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            promoteSectionMedia(entry.target);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: lookaheadMargin, threshold: 0.01 });
+
+      sections.forEach((sec) => tier1Observer.observe(sec));
+      if (Array.isArray(activeObservers)) {
+        activeObservers.push(tier1Observer);
+      }
+    } else {
+      sections.forEach(promoteSectionMedia);
+    }
+
+    // Tier 2: Idle background download of all remaining media (skipped on 2g/save-data)
+    if (!hasDataSaver) {
+      const startTier2IdleLoad = () => {
+        const remainingImages = Array.from(document.querySelectorAll('img')).filter(
+          (img) => img.src && !img.complete
+        );
+
+        if (remainingImages.length === 0) return;
+
+        let activeDownloads = 0;
+        const MAX_TIER2_CONCURRENCY = 3;
+
+        function pumpTier2Queue() {
+          while (activeDownloads < MAX_TIER2_CONCURRENCY && remainingImages.length > 0) {
+            const imgEl = remainingImages.shift();
+            activeDownloads++;
+
+            const prefetch = new Image();
+            if ('fetchPriority' in prefetch) {
+              prefetch.fetchPriority = 'low';
+            }
+            prefetch.src = imgEl.src;
+
+            const onDone = () => {
+              activeDownloads--;
+              if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(pumpTier2Queue, { timeout: 2000 });
+              } else {
+                setTimeout(pumpTier2Queue, 60);
+              }
+            };
+
+            if (typeof prefetch.decode === 'function') {
+              prefetch.decode().then(onDone).catch(onDone);
+            } else {
+              prefetch.onload = onDone;
+              prefetch.onerror = onDone;
+            }
+          }
+        }
+
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(pumpTier2Queue, { timeout: 3000 });
+        } else {
+          setTimeout(pumpTier2Queue, 250);
+        }
+      };
+
+      if (document.readyState === 'complete') {
+        startTier2IdleLoad();
+      } else {
+        const loadOpts = { once: true };
+        if (signal) loadOpts.signal = signal;
+        window.addEventListener('load', startTier2IdleLoad, loadOpts);
+      }
     }
   }
 
@@ -1705,7 +2105,6 @@
           }
         },
         (err) => {
-          // Graceful fallback: silently ignore error; form submits normally
           console.warn('[Geolocation] Non-blocking permission/error:', err.message);
         },
         { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
@@ -1715,19 +2114,22 @@
     }
   }
 
-  function initComplianceSuite() {
+  function initComplianceSuite(signal) {
+    const clickOpts = {};
+    if (signal) clickOpts.signal = signal;
+
     if (dom.disclaimerDismissBtn) {
-      dom.disclaimerDismissBtn.addEventListener('click', dismissDisclaimerNotice);
+      dom.disclaimerDismissBtn.addEventListener('click', dismissDisclaimerNotice, clickOpts);
     }
     if (dom.disclaimerBackdrop) {
-      dom.disclaimerBackdrop.addEventListener('click', dismissDisclaimerNotice);
+      dom.disclaimerBackdrop.addEventListener('click', dismissDisclaimerNotice, clickOpts);
     }
 
     if (dom.cookieAcceptBtn) {
-      dom.cookieAcceptBtn.addEventListener('click', () => handleCookieChoice('accepted'));
+      dom.cookieAcceptBtn.addEventListener('click', () => handleCookieChoice('accepted'), clickOpts);
     }
     if (dom.cookieDeclineBtn) {
-      dom.cookieDeclineBtn.addEventListener('click', () => handleCookieChoice('declined'));
+      dom.cookieDeclineBtn.addEventListener('click', () => handleCookieChoice('declined'), clickOpts);
     }
 
     // Check if user has already accepted cookies in a previous session
@@ -1742,13 +2144,13 @@
         if (text.includes('visit') || text.includes('presentation') || el.getAttribute('href') === '#location') {
           requestGeolocationOnUserAction();
         }
-      });
+      }, clickOpts);
     });
 
     // Also trigger if user selects site visit intent in Step 1
     const siteVisitIntentBtn = document.querySelector('[data-enquiry-intent*="Site Visit"]');
     if (siteVisitIntentBtn) {
-      siteVisitIntentBtn.addEventListener('click', requestGeolocationOnUserAction);
+      siteVisitIntentBtn.addEventListener('click', requestGeolocationOnUserAction, clickOpts);
     }
 
     // Observe brand resolution section so compliance triggers once resolved
@@ -1762,28 +2164,87 @@
         });
       }, { threshold: 0.15 });
       brandObserver.observe(dom.brandResolve);
+      if (Array.isArray(activeObservers)) {
+        activeObservers.push(brandObserver);
+      }
     }
   }
 
   // ============================================================
-  // INIT
+  // LIFECYCLE (INIT & DESTROY)
+  // Full tear-down on pagehide, restoration from bfcache on pageshow
   // ============================================================
   function init() {
+    if (isInitialized) return;
+    isInitialized = true;
+
+    globalAbortController = new AbortController();
+    const signal = globalAbortController.signal;
+
     cacheDom();
     initGlobalAudioControl();
-    initHeroFilm();
-    new FrameScroller();
-    initSpecificationVideo();
+    initHeroFilm(signal);
+    frameScrollerInstance = new FrameScroller(signal);
+    initSpecificationVideo(signal);
     initFloorPlanViewer();
     initEnquiryFlow();
-    initNavigation();
+    initNavigation(signal);
     initRevealObserver();
     initKineticTypography();
     initCinematicTransitions();
     initSpatialMoments();
-    initLenisSmoothScroll();
-    initComplianceSuite();
+    initLenisSmoothScroll(signal);
+    initComplianceSuite(signal);
+    initTieredMediaLoader(signal);
   }
+
+  function destroy() {
+    if (!isInitialized) return;
+    isInitialized = false;
+
+    if (globalAbortController) {
+      globalAbortController.abort();
+      globalAbortController = null;
+    }
+
+    if (frameScrollerInstance) {
+      frameScrollerInstance.destroy();
+      frameScrollerInstance = null;
+    }
+
+    if (lenisInstance) {
+      try {
+        lenisInstance.destroy();
+      } catch (e) {}
+      lenisInstance = null;
+    }
+
+    if (lenisRafId) {
+      cancelAnimationFrame(lenisRafId);
+      lenisRafId = null;
+    }
+
+    activeObservers.forEach((obs) => {
+      try {
+        obs.disconnect();
+      } catch (e) {}
+    });
+    activeObservers = [];
+
+    activeRafIds.forEach((id) => {
+      try {
+        cancelAnimationFrame(id);
+      } catch (e) {}
+    });
+    activeRafIds = [];
+  }
+
+  window.addEventListener('pagehide', destroy);
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      init();
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
