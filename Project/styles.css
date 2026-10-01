@@ -78,8 +78,8 @@
   /* Z-Index */
   --z-base: 1;
   --z-overlay: 10;
-  --z-nav: 100;
-  --z-modal: 1000;
+  --z-nav: 3000;
+  --z-modal: 4000;
   --z-film: 2000;
 }
 
@@ -2742,29 +2742,184 @@ ul, ol {
    RESPONSIVE — MOBILE
    ============================================================ */
 
+/* ============================================================
+   RESPONSIVE — MOBILE (<= 768px)
+   Intentionally recomposed architectural mobile experience.
+   Desktop remains 100% identical.
+   ============================================================ */
+
 @media (max-width: 768px) {
   :root {
-    --text-3xl: 2.25rem;
-    --text-4xl: 2.75rem;
-    --text-5xl: 3.25rem;
-    --text-6xl: 4rem;
+    --text-xs: 0.6875rem;    /* 11px */
+    --text-sm: 0.8125rem;    /* 13px */
+    --text-base: 0.9375rem;  /* 15px */
+    --text-md: 1rem;         /* 16px */
+    --text-lg: 1.125rem;     /* 18px */
+    --text-xl: 1.35rem;      /* 21.6px */
+    --text-2xl: 1.65rem;     /* 26.4px */
+    --text-3xl: 2rem;        /* 32px */
+    --text-4xl: 2.35rem;     /* 37.6px */
+    --text-5xl: 2.85rem;     /* 45.6px */
+    --text-6xl: 3.25rem;     /* 52px */
+    --text-7xl: 3.75rem;     /* 60px */
+
+    --gutter: clamp(1rem, 4vw, 1.5rem);
+    --space-xl: 2.75rem;
+    --space-2xl: 3.75rem;
+    --space-3xl: 4.75rem;
+    --space-4xl: 5.5rem;
+    --space-5xl: 6.5rem;
   }
 
+  /* --- GLOBAL SECTION SPACING ON MOBILE --- */
+  .section,
+  .section--dark,
+  .section--charcoal,
+  .editorial,
+  .philosophy,
+  .sustainability,
+  .specs,
+  .location,
+  .sold-out,
+  .leaderboard,
+  .enquiry,
+  .spec-film {
+    padding-top: var(--space-3xl) !important;
+    padding-bottom: var(--space-3xl) !important;
+  }
+
+  /* --- HEADER & NAVIGATION --- */
+  .nav {
+    padding: 0.85rem var(--gutter);
+    padding-top: calc(0.85rem + env(safe-area-inset-top, 0px));
+  }
+
+  .nav--scrolled {
+    padding: 0.65rem var(--gutter);
+    padding-top: calc(0.65rem + env(safe-area-inset-top, 0px));
+  }
+
+  .nav__logo {
+    height: 20px;
+    width: auto;
+  }
+
+  .nav__links {
+    display: none !important;
+  }
+
+  .nav__menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 10px 8px;
+    margin-right: -8px;
+    position: relative;
+    z-index: 3001;
+  }
+
+  .nav__menu-btn span {
+    width: 24px;
+    height: 1.5px;
+  }
+
+  /* Mobile Fullscreen Overlay Navigation */
+  .nav__overlay {
+    z-index: 2999 !important;
+    justify-content: flex-start;
+    padding: calc(72px + env(safe-area-inset-top, 0px)) var(--gutter) calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: rgba(12, 13, 14, 0.98);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .nav__overlay-link {
+    font-size: clamp(1.2rem, 5.2vw, 1.55rem);
+    font-weight: 300;
+    line-height: 1.25;
+    padding: 0.5rem 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(214, 201, 180, 0.08);
+  }
+
+  /* --- PHASE 05: CINEMATIC OPENING HERO (RULE 4, 5, 6, 8) ---
+     Wide 16:9 presentation, proportional to viewport width, zero cropping of architecture or embedded text. */
+  .hero-film {
+    position: relative;
+    width: 100%;
+    height: auto !important;
+    min-height: auto !important;
+    padding-top: calc(64px + env(safe-area-inset-top, 0px));
+    padding-bottom: 1.5rem;
+    background: var(--black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-film__video {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    display: block;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8);
+  }
+
+  .hero-film__controls {
+    position: static !important;
+    bottom: auto !important;
+    right: auto !important;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: 0 var(--gutter);
+    opacity: 1 !important;
+  }
+
+  .hero-film__btn {
+    min-height: 44px;
+    padding: 0.7rem 1.35rem;
+    font-size: var(--text-xs);
+    flex: 1;
+    max-width: 180px;
+    text-align: center;
+  }
+
+  /* --- PHASE 06: BRAND RESOLUTION SECTION --- */
   .brand-resolve {
-    background-position: 80% center;
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding: clamp(5rem, 12vh, 7rem) var(--gutter) 4.5rem;
-    align-items: flex-end;
+    background-position: center center;
+    background-size: cover;
+    min-height: auto !important;
+    padding: var(--space-3xl) var(--gutter) var(--space-2xl);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
   }
 
   .brand-resolve::before {
     background: 
       linear-gradient(180deg, 
-        rgba(12, 13, 14, 0.92) 0%, 
-        rgba(12, 13, 14, 0.85) 50%, 
-        rgba(12, 13, 14, 0.6) 80%,
-        rgba(12, 13, 14, 0.92) 100%
+        rgba(12, 13, 14, 0.94) 0%, 
+        rgba(12, 13, 14, 0.88) 40%, 
+        rgba(12, 13, 14, 0.92) 80%,
+        rgba(12, 13, 14, 0.98) 100%
       );
   }
 
@@ -2772,137 +2927,592 @@ ul, ol {
     max-width: 100%;
   }
 
-  .brand-resolve__meta-strip {
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .nav__links {
-    display: none;
-  }
-
-  .nav__menu-btn {
-    display: flex;
-  }
-
-  .hero-film__video {
-    object-position: center 30%;
-  }
-
-  .arch-scroll__sticky {
-    padding: 1rem;
-  }
-
-  .arch-scroll__canvas {
-    width: calc(100vw - 2rem);
-    height: min(60vh, 440px);
-    border-radius: 6px;
-  }
-
-  .arch-scroll__text {
-    right: 1.25rem;
-    left: 1.25rem;
-    bottom: 1.25rem;
+  .brand-resolve__badge {
+    margin-bottom: 1.25rem;
     max-width: 100%;
-  }
-
-  .arch-scroll__headline {
-    font-size: clamp(1.35rem, 5.2vw, 1.85rem);
-    line-height: 1.15;
-  }
-
-  .arch-scroll__subline {
-    font-size: 0.75rem;
-  }
-
-  .arch-scroll__counter {
-    font-size: 0.625rem;
-    padding: 0.18rem 0.5rem;
-  }
-
-  .arch-scroll__progress {
-    right: 1rem;
-    bottom: 1.25rem;
-    height: 48px;
-  }
-
-  .philosophy__word {
-    font-size: var(--text-3xl);
-  }
-
-  .sustainability__pillars {
-    grid-template-columns: 1fr;
-  }
-
-  .leaderboard__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .project-hero__details {
-    flex-direction: column;
-    gap: var(--space-md);
-  }
-
-  .footer__bottom {
-    flex-direction: column;
-    gap: var(--space-sm);
-    text-align: center;
-  }
-
-  .persistent-cta {
-    justify-content: center;
-    padding: 0.65rem 1rem;
-    padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  .floating-whatsapp__text {
-    display: none;
-  }
-
-  .floating-whatsapp {
-    padding: 0;
-    width: 44px;
-    height: 44px;
-    justify-content: center;
-    bottom: calc(52px + 0.75rem + env(safe-area-inset-bottom, 0px));
-    right: 1rem;
-    border-radius: 50%;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --text-3xl: 1.875rem;
-    --text-4xl: 2.25rem;
-    --text-5xl: 2.75rem;
-    --text-6xl: 3.25rem;
-  }
-
-  .brand-resolve {
-    background-position: 82% center;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    padding: 0.35rem 0.75rem;
   }
 
   .brand-resolve__logo {
-    width: clamp(190px, 60vw, 240px);
+    width: clamp(190px, 62vw, 250px);
+    margin-bottom: 0.75rem;
   }
 
   .brand-resolve__tagline {
-    font-size: var(--text-lg);
+    font-size: var(--text-xl);
+    margin-bottom: 1.25rem;
+  }
+
+  .brand-resolve__desc {
+    font-size: var(--text-base);
+    line-height: 1.75;
+    margin-bottom: 1.75rem;
   }
 
   .brand-resolve__actions {
     flex-direction: column;
     width: 100%;
     align-items: stretch;
+    gap: 0.75rem;
   }
 
-  .brand-resolve__actions a {
+  .brand-resolve__actions a,
+  .brand-resolve__actions button {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    text-align: center;
+    padding: 0.85rem 1.5rem;
+  }
+
+  .brand-resolve__meta-strip {
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(212, 201, 180, 0.12);
+    width: 100%;
+  }
+
+  .brand-resolve__meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  /* --- PHASE 07: EDITORIAL INTRODUCTION --- */
+  .editorial__grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-xl) !important;
+  }
+
+  .editorial__title {
+    font-size: clamp(1.85rem, 7vw, 2.5rem);
+    line-height: 1.1;
+    margin-bottom: 1.25rem;
+  }
+
+  .editorial__text {
+    max-width: 100%;
+    font-size: var(--text-base);
+    line-height: 1.75;
+  }
+
+  /* Preserve landscape architectural composition on mobile */
+  .editorial__image {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .editorial__image img {
+    transform: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .editorial__image--tall {
+    aspect-ratio: 16 / 10 !important;
+    height: auto !important;
+  }
+
+  .editorial__image--wide {
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+  }
+
+  .editorial__image--square {
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+  }
+
+  /* --- PHASE 08: PHILOSOPHY --- */
+  .philosophy__item {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+    margin-bottom: var(--space-2xl);
+  }
+
+  .philosophy__visual {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    aspect-ratio: 16 / 10 !important;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .philosophy__visual img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  .philosophy__content {
+    padding: var(--space-lg) 0 !important;
+  }
+
+  .philosophy__word {
+    font-size: clamp(2rem, 7.5vw, 2.75rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .philosophy__desc {
+    max-width: 100%;
+    font-size: var(--text-base);
+    line-height: 1.75;
+  }
+
+  /* --- PHASE 09: SUSTAINABILITY & HERITAGE --- */
+  .sustainability__grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-xl) !important;
+  }
+
+  .sustainability__pillars {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    margin-top: 1.5rem !important;
+  }
+
+  .sustainability__card {
+    padding: 1.35rem !important;
+  }
+
+  /* --- PHASE 10: 35-SECOND ARCHITECTURAL SCROLL WALKTHROUGH --- */
+  .arch-scroll__sticky {
+    padding: 0.75rem !important;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .arch-scroll__canvas {
+    width: 100% !important;
+    max-width: calc(100vw - 1.5rem) !important;
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+    max-height: min(56vh, 420px) !important;
+    border-radius: 6px;
+  }
+
+  .arch-scroll__text {
+    right: 0.75rem !important;
+    left: 0.75rem !important;
+    bottom: 0.75rem !important;
+    max-width: calc(100% - 1.5rem) !important;
+  }
+
+  .arch-scroll__headline {
+    font-size: clamp(1.15rem, 4.4vw, 1.45rem) !important;
+    line-height: 1.18;
+  }
+
+  .arch-scroll__subline {
+    font-size: 0.72rem !important;
+    margin-top: 0.25rem;
+  }
+
+  .arch-scroll__progress {
+    right: 0.75rem !important;
+    bottom: 0.75rem !important;
+    height: 40px !important;
+  }
+
+  /* --- PHASE 11: DEONARAYAN ESTATE PROJECT HERO --- */
+  .project-hero {
+    min-height: 85vh;
+    min-height: 85dvh;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .project-hero__content {
+    padding: var(--space-2xl) var(--gutter) var(--space-xl) !important;
+  }
+
+  .project-hero__status {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center;
+    gap: 0.4rem 0.6rem !important;
+    letter-spacing: 0.14em !important;
+    font-size: 0.65rem !important;
+    max-width: 100% !important;
+    line-height: 1.4;
+  }
+
+  .project-hero__name {
+    font-size: clamp(2rem, 7.5vw, 3rem) !important;
+    line-height: 1.02;
+    margin-bottom: 0.75rem;
+    word-break: break-word;
+  }
+
+  .project-hero__tagline {
+    font-size: clamp(0.95rem, 3.5vw, 1.15rem) !important;
+    line-height: 1.45;
+  }
+
+  .project-hero__details {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem 1rem !important;
+    margin-top: var(--space-lg) !important;
+    padding-top: var(--space-md) !important;
+  }
+
+  .project-hero__detail-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.2rem;
+  }
+
+  .project-hero__detail-value {
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  /* --- PHASE 12: CURATED MOMENTS GALLERY GRID --- */
+  .curated-moments__grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-lg) !important;
+  }
+
+  .curated-moments__grid > div {
+    grid-column: span 12 / span 12 !important;
+    width: 100% !important;
+  }
+
+  /* --- PHASE 13: ORIGINAL ARCHITECTURAL FLOOR PLANS --- */
+  .floor-plans {
+    padding: var(--space-3xl) 0 !important;
+  }
+
+  .floor-plans__tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+    padding: 0 var(--gutter) !important;
+    margin-bottom: var(--space-lg) !important;
+    width: 100%;
+  }
+
+  .floor-plans__tab {
+    padding: 0.65rem 0.5rem !important;
+    font-size: 0.6875rem !important;
+    text-align: center;
+    letter-spacing: 0.1em !important;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .floor-plans__viewer {
+    min-height: 45vh !important;
+    padding: 0 var(--gutter) !important;
+  }
+
+  .floor-plans__img {
+    max-height: 52vh !important;
+  }
+
+  .floor-plans__controls {
+    gap: 0.5rem !important;
+    margin-top: var(--space-md) !important;
+    flex-wrap: wrap;
+  }
+
+  .floor-plans__control-btn {
+    min-height: 44px;
+    padding: 0.6rem 1rem !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* --- PHASE 14: SPECIFICATIONS (RULE 14: NO CRAMMED TWO-COLUMNS) --- */
+  .specs {
+    padding: var(--space-3xl) 0 !important;
+  }
+
+  .spec-item {
+    grid-template-columns: 1fr !important;
+    padding: 0 var(--gutter) !important;
+  }
+
+  .spec-item__header {
+    padding: var(--space-lg) 0 var(--space-xs) 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .spec-item__category {
+    font-size: clamp(1.35rem, 5vw, 1.85rem) !important;
+  }
+
+  .spec-item__body {
+    padding: var(--space-xs) 0 var(--space-lg) 0 !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: var(--space-md) !important;
+  }
+
+  .spec-item__text {
+    max-width: 100% !important;
+    font-size: var(--text-base) !important;
+    line-height: 1.75;
+  }
+
+  .spec-item__image {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 4px;
+    margin-top: 0.25rem;
+  }
+
+  .spec-item__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* --- PHASE 15: SPECIFICATION IN MOTION FILM (RULE 4, 5, 6, 7) --- */
+  .spec-film {
+    padding: 0 0 var(--space-3xl) 0 !important;
+  }
+
+  .spec-film__wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+    border-radius: 4px;
+  }
+
+  .spec-film__video {
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    object-fit: contain !important;
+    display: block;
+  }
+
+  .spec-film__badge {
+    font-size: 0.6rem !important;
+    letter-spacing: 0.12em !important;
+    padding: 0.3rem 0.6rem !important;
+    top: 0.5rem !important;
+    left: 0.5rem !important;
+  }
+
+  .spec-film__controls-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .spec-film__controls-bar > div {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.65rem !important;
+  }
+
+  .spec-film__controls-bar .btn-luxury,
+  .spec-film__controls-bar .btn-whatsapp {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 48px !important;
+    text-align: center !important;
+  }
+
+  /* --- PHASE 16: LOCATION & OFFICE --- */
+  .location__grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-xl) !important;
+  }
+
+  .location__info {
+    padding-top: 0 !important;
+  }
+
+  .location__map {
+    aspect-ratio: 16 / 10 !important;
+    border-radius: 4px;
+  }
+
+  /* --- PHASE 17: SOLD OUT / ANIMA SKY --- */
+  .sold-out__grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-xl) !important;
+  }
+
+  .sold-out__image {
+    aspect-ratio: 16 / 10 !important;
+    border-radius: 4px;
+  }
+
+  /* --- PHASE 18: EXECUTIVE LEADERSHIP (RULE 14: BALANCED CARDS) --- */
+  .leaderboard__grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .leaderboard__card {
+    border-radius: 4px;
+  }
+
+  .leaderboard__portrait {
+    aspect-ratio: 16 / 11 !important;
+  }
+
+  .leaderboard__portrait img {
+    object-position: center 25% !important;
+  }
+
+  .leaderboard__meta {
+    padding: 1.25rem !important;
+  }
+
+  .leaderboard__cta-banner {
+    padding: var(--space-xl) var(--gutter) !important;
+    margin-top: var(--space-2xl) !important;
+  }
+
+  .leaderboard__cta-banner > div {
+    flex-direction: column !important;
+    width: 100%;
+    gap: 0.75rem !important;
+  }
+
+  .leaderboard__cta-banner .btn-luxury,
+  .leaderboard__cta-banner .btn-whatsapp {
+    width: 100% !important;
+    min-height: 48px !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* --- PHASE 19: CONCIERGE ENQUIRY FLOW --- */
+  .enquiry__container {
+    padding: 0 var(--gutter) !important;
+  }
+
+  .enquiry__question {
+    font-size: clamp(1.4rem, 5.5vw, 1.85rem) !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .enquiry__option {
+    padding: 1rem 1.15rem !important;
+    font-size: 0.9375rem !important;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+
+  .enquiry__submit {
+    width: 100% !important;
+    min-height: 48px !important;
+    padding: 0.85rem 1.5rem !important;
+    display: flex;
+    align-items: center;
     justify-content: center;
     text-align: center;
   }
 
+  /* --- PHASE 20: FOOTER & PERSISTENT BARS --- */
+  .final-brand {
+    min-height: 45vh !important;
+    padding: var(--space-3xl) var(--gutter) !important;
+  }
+
+  .footer {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-lg) !important;
+    padding-bottom: calc(var(--space-xl) + 70px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .footer__bottom {
+    flex-direction: column !important;
+    gap: var(--space-sm) !important;
+    text-align: center !important;
+    padding-bottom: calc(var(--space-2xl) + 70px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Persistent CTA bottom bar */
+  .persistent-cta {
+    justify-content: center !important;
+    padding: 0.65rem 1rem !important;
+    padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .persistent-cta__btn {
+    width: 100% !important;
+    max-width: 360px;
+    text-align: center !important;
+    justify-content: center !important;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Floating WhatsApp */
+  .floating-whatsapp {
+    padding: 0 !important;
+    width: 44px !important;
+    height: 44px !important;
+    justify-content: center !important;
+    bottom: calc(54px + 0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+    right: 1rem !important;
+    border-radius: 50% !important;
+  }
+
+  .floating-whatsapp__text {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — EXTRA COMPACT MOBILE (<= 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+  :root {
+    --text-3xl: 1.75rem;
+    --text-4xl: 2.15rem;
+    --text-5xl: 2.5rem;
+    --text-6xl: 2.85rem;
+  }
+
+  .brand-resolve__logo {
+    width: clamp(180px, 58vw, 220px);
+  }
+
+  .brand-resolve__tagline {
+    font-size: var(--text-lg);
+  }
+
   .editorial__title {
-    font-size: var(--text-2xl);
+    font-size: 1.75rem;
+  }
+
+  .floor-plans__tab {
+    font-size: 0.625rem !important;
+    letter-spacing: 0.06em !important;
+    padding: 0.5rem 0.25rem !important;
   }
 }
 

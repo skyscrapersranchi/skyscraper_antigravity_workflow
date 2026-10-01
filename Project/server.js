@@ -68,8 +68,8 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    // Static file streaming with realistic Cache-Control matching vercel.json
-    const cacheHeader = ext === '.html' ? 'no-cache' : 'public, max-age=86400, stale-while-revalidate=604800';
+    // Static file streaming with no-cache for instant local changes
+    const cacheHeader = 'no-cache, no-store, must-revalidate';
     res.writeHead(200, {
       'Content-Length': stats.size,
       'Content-Type': contentType,
