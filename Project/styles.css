@@ -98,6 +98,9 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 body {
@@ -108,6 +111,8 @@ body {
   color: var(--paper);
   background-color: var(--black);
   overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 /* CHANGE 1 — Premium atmospheric background for all content sections
@@ -974,8 +979,6 @@ ul, ol {
 }
 
 .arch-scroll__sticky {
-  position: sticky;
-  top: 0;
   width: 100%;
   height: 100vh;
   display: flex;

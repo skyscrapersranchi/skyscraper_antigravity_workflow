@@ -411,8 +411,8 @@
       }
     }
 
-    queueNeighborFrames(centerIndex) {
-      const isForward = this.targetFrameIndex >= this.currentFrameIndex;
+    queueNeighborFrames(centerIndex, isForwardHint = null) {
+      const isForward = isForwardHint !== null ? isForwardHint : (this.targetFrameIndex >= this.currentFrameIndex);
       const windowForward = isForward ? 35 : 15;
       const windowBack = isForward ? 12 : 25;
 
@@ -669,10 +669,14 @@
       if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && dom.archSection) {
         gsap.registerPlugin(ScrollTrigger);
         
+        this.hasInitialRender = false;
+        const stickyEl = document.querySelector('.arch-scroll__sticky');
+        
         this.scrollTrigger = ScrollTrigger.create({
-          trigger: dom.archSection,
+          trigger: stickyEl || dom.archSection,
+          pin: true,
           start: 'top top',
-          end: 'bottom bottom',
+          end: `+=${this.totalFrames * 4}`, // 3300px scrub distance
           scrub: true,
           onUpdate: (self) => {
             if (this.isPaused) return;
@@ -680,12 +684,14 @@
             const calculatedFrame = Math.floor(progress * (this.totalFrames - 1)) + 1;
             this.targetFrameIndex = calculatedFrame;
             
-            if (calculatedFrame !== this.currentFrameIndex) {
+            if (calculatedFrame !== this.currentFrameIndex || !this.hasInitialRender) {
+              const isScrollingForward = calculatedFrame >= this.currentFrameIndex;
+              this.hasInitialRender = true;
               this.currentFrameIndex = calculatedFrame;
               
               if (Math.abs(this.currentFrameIndex - this.lastQueuedFrame) >= 2) {
                 this.lastQueuedFrame = this.currentFrameIndex;
-                this.queueNeighborFrames(this.currentFrameIndex);
+                this.queueNeighborFrames(this.currentFrameIndex, isScrollingForward);
               }
               
               requestAnimationFrame(() => {
