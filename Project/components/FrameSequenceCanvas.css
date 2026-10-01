@@ -1,0 +1,153 @@
+/* ============================================================
+   FrameSequenceCanvas — Architectural Luxury Styles
+   ============================================================ */
+
+.fsc-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  background-color: #0c0d0e;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+}
+
+/* Canvas Styling */
+.fsc-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   PRELOADER OVERLAY
+   Sleek architectural design, champagne gold accent, smooth fade
+   ============================================================ */
+.fsc-preloader {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0c0d0e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+.fsc-preloader--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.fsc-preloader__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 320px;
+  width: 85%;
+  text-align: center;
+}
+
+/* Subtle decorative badge */
+.fsc-preloader__tagline {
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #c8a86b; /* Champagne gold */
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Percentage Display */
+.fsc-preloader__percentage {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: 3.25rem;
+  font-weight: 300;
+  color: #f5f2eb; /* Warm ivory */
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fsc-preloader__percentage-symbol {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #c8a86b;
+  margin-left: 0.2rem;
+}
+
+/* Progress Track and Bar */
+.fsc-preloader__track {
+  width: 100%;
+  height: 2px;
+  background: rgba(245, 242, 235, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.fsc-preloader__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #c8a86b 0%, #dfceb1 100%);
+  border-radius: 999px;
+  transition: width 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(200, 168, 107, 0.45);
+}
+
+/* Subtext & Status */
+.fsc-preloader__status {
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: #a69f95; /* Warm gray */
+  opacity: 0.75;
+  margin: 0;
+}
+
+/* Optional Background Indicator (subtle small badge in corner when background loading continues) */
+.fsc-bg-status {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 235, 0.4);
+  background: rgba(14, 15, 17, 0.6);
+  padding: 4px 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.5s ease;
+}
+
+.fsc-bg-status--complete {
+  opacity: 0;
+}
+
+/* Media Queries */
+@media (max-width: 600px) {
+  .fsc-preloader__percentage {
+    font-size: 2.75rem;
+  }
+}
