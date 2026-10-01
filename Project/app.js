@@ -223,10 +223,18 @@
       }, clickOpts);
     }
 
-    // Video loaded state
-    dom.heroVideo.addEventListener('playing', () => {
-      if (dom.heroLoader) dom.heroLoader.classList.add('hidden');
-    }, clickOpts);
+    // Video loaded state fallback to prevent stuck loader
+    const hideLoader = () => {
+      if (dom.heroLoader && !dom.heroLoader.classList.contains('hidden')) {
+        dom.heroLoader.classList.add('hidden');
+      }
+    };
+    dom.heroVideo.addEventListener('playing', hideLoader, clickOpts);
+    dom.heroVideo.addEventListener('canplay', hideLoader, clickOpts);
+    dom.heroVideo.addEventListener('loadeddata', hideLoader, clickOpts);
+    
+    // Fallback: forcefully hide loader after 3 seconds so it never blocks the site
+    setTimeout(hideLoader, 3000);
 
     // When film completes: seamlessly resolve into Brand Frame
     dom.heroVideo.addEventListener('ended', () => {
