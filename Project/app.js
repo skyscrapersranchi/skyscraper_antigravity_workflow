@@ -1541,12 +1541,7 @@
       }
       requestAnimationFrame(raf);
 
-      // Keep native scroll listeners & FrameScroller synchronized with Lenis
-      lenisInstance.on('scroll', () => {
-        window.dispatchEvent(new Event('scroll'));
-      });
-
-      // Intercept anchor link clicks for smooth Lenis scrolling
+      // Anchor link clicks for smooth Lenis scrolling
       document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener('click', (e) => {
           const targetId = anchor.getAttribute('href');
