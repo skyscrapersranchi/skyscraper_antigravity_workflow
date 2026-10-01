@@ -5,5 +5,15 @@
       "destination": "https://skyscrapers-skyline-crm.vercel.app",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/Project/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/Project/$1"
+    }
   ]
 }
