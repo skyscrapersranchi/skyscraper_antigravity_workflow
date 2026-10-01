@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "https://skyscrapers-skyline-crm.vercel.app",
+      "permanent": false
+    }
+  ]
+}

@@ -169,6 +169,15 @@
     dom.persistentCta = document.getElementById('persistentCta');
     dom.floatingWhatsapp = document.getElementById('floatingWhatsapp');
     dom.reveals = document.querySelectorAll('.reveal');
+    dom.specVideo = document.getElementById('specificationVideo');
+
+    // Compliance Elements
+    dom.disclaimerModal = document.getElementById('disclaimerModal');
+    dom.disclaimerDismissBtn = document.getElementById('disclaimerDismissBtn');
+    dom.disclaimerBackdrop = document.getElementById('disclaimerBackdrop');
+    dom.cookieBar = document.getElementById('cookieBar');
+    dom.cookieAcceptBtn = document.getElementById('cookieAcceptBtn');
+    dom.cookieDeclineBtn = document.getElementById('cookieDeclineBtn');
   }
 
   // ============================================================
@@ -196,7 +205,11 @@
         dom.heroVideo.currentTime = 0;
         dom.heroVideo.play().catch(() => {});
         if (dom.heroOverlay) dom.heroOverlay.classList.remove('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (lenisInstance) {
+          lenisInstance.scrollTo(0, { duration: 1 });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       });
     }
 
@@ -210,8 +223,13 @@
       if (dom.heroOverlay) dom.heroOverlay.classList.add('active');
       setTimeout(() => {
         if (dom.brandResolve) {
-          dom.brandResolve.scrollIntoView({ behavior: 'smooth' });
+          if (lenisInstance) {
+            lenisInstance.scrollTo(dom.brandResolve, { duration: 1.2 });
+          } else {
+            dom.brandResolve.scrollIntoView({ behavior: 'smooth' });
+          }
           revealBrandElements();
+          triggerPostHeroCompliance();
         }
       }, 700);
     });
@@ -294,8 +312,9 @@
     }
 
     queueNeighborFrames(centerIndex) {
-      const windowForward = 25;
-      const windowBack = 8;
+      const isForward = this.targetFrameIndex >= this.currentFrameIndex;
+      const windowForward = isForward ? 35 : 15;
+      const windowBack = isForward ? 12 : 30;
       for (let i = centerIndex - windowBack; i <= centerIndex + windowForward; i++) {
         if (i >= 1 && i <= this.totalFrames && !this.frames.has(i)) {
           this.loadImage(i);
@@ -440,7 +459,7 @@
     }
 
     onScroll() {
-      if (!dom.archSection) return;
+      if (!dom.archSection || this.isPaused) return;
       const rect = dom.archSection.getBoundingClientRect();
       const scrollHeight = dom.archSection.offsetHeight - window.innerHeight;
       if (scrollHeight <= 0) return;
@@ -458,29 +477,63 @@
     }
 
     loop() {
+      if (this.isPaused) {
+        this.isRendering = false;
+        return;
+      }
+
       const diff = this.targetFrameIndex - this.currentFrameIndex;
-      if (Math.abs(diff) > 0.05) {
-        this.currentFrameIndex += diff * 0.28;
+      const absDiff = Math.abs(diff);
+
+      if (absDiff > 0.04) {
+        // Velocity-adaptive cinematic damping for velvety smooth walkthrough feel
+        const lerpFactor = Math.min(0.22, 0.11 + absDiff * 0.0035);
+        this.currentFrameIndex += diff * lerpFactor;
         const rounded = Math.round(this.currentFrameIndex);
         if (rounded !== this.lastRenderedIndex) {
           this.renderFrame(rounded);
           this.updatePhase(rounded);
         }
+
+        // Steadicam focal breathing scale during active camera movement
+        if (this.canvas) {
+          const velocity = Math.min(1, absDiff / 25);
+          const focalScale = 1.0 + velocity * 0.006;
+          this.canvas.style.transform = `scale(${focalScale.toFixed(4)}) translateZ(0)`;
+        }
+
         requestAnimationFrame(() => this.loop());
       } else {
         this.currentFrameIndex = this.targetFrameIndex;
         const rounded = Math.round(this.currentFrameIndex);
         this.renderFrame(rounded);
         this.updatePhase(rounded);
+        if (this.canvas) {
+          this.canvas.style.transform = 'scale(1) translateZ(0)';
+        }
         this.isRendering = false;
       }
     }
 
     init() {
+      this.isPaused = false;
       this.resize();
       this.preloadInitialBatch();
       window.addEventListener('resize', () => this.resize());
       window.addEventListener('scroll', () => this.onScroll(), { passive: true });
+
+      // Pause rendering when architectural walkthrough is out of viewport
+      if ('IntersectionObserver' in window && dom.archSection) {
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            this.isPaused = !entry.isIntersecting;
+            if (entry.isIntersecting && !this.isRendering) {
+              this.onScroll();
+            }
+          });
+        }, { rootMargin: '100px 0px 100px 0px', threshold: 0.01 });
+        obs.observe(dom.archSection);
+      }
     }
   }
 
@@ -603,6 +656,75 @@
       applyPlanTransform();
     }, { passive: false });
 
+    // --- Mobile Touch Gestures (Single-finger pan, Two-finger pinch-zoom, Double-tap toggle) ---
+    let initialPinchDistance = 0;
+    let initialPinchZoom = 1;
+    let lastTapTime = 0;
+
+    dom.planViewer.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        const currentTime = Date.now();
+        const tapDiff = currentTime - lastTapTime;
+        if (tapDiff < 300 && tapDiff > 0) {
+          e.preventDefault();
+          state.planZoom = state.planZoom > 1.2 ? 1 : 2;
+          if (state.planZoom === 1) {
+            state.planPanX = 0;
+            state.planPanY = 0;
+          }
+          applyPlanTransform();
+          return;
+        }
+        lastTapTime = currentTime;
+
+        if (state.planZoom > 1) {
+          state.isPanningPlan = true;
+          state.panStartX = e.touches[0].clientX - state.planPanX;
+          state.panStartY = e.touches[0].clientY - state.planPanY;
+        }
+      } else if (e.touches.length === 2) {
+        state.isPanningPlan = false;
+        initialPinchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialPinchZoom = state.planZoom;
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (state.isPanningPlan && e.touches.length === 1 && state.planZoom > 1) {
+        e.preventDefault(); // Prevent page scroll while dragging zoomed floor plan
+        state.planPanX = e.touches[0].clientX - state.panStartX;
+        state.planPanY = e.touches[0].clientY - state.panStartY;
+        applyPlanTransform();
+      } else if (e.touches.length === 2 && initialPinchDistance > 0) {
+        e.preventDefault();
+        const currentDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const scaleChange = currentDistance / initialPinchDistance;
+        state.planZoom = Math.max(1, Math.min(3.5, initialPinchZoom * scaleChange));
+        if (state.planZoom === 1) {
+          state.planPanX = 0;
+          state.planPanY = 0;
+        }
+        applyPlanTransform();
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', (e) => {
+      if (e.touches.length === 0) {
+        state.isPanningPlan = false;
+        initialPinchDistance = 0;
+      } else if (e.touches.length === 1 && state.planZoom > 1) {
+        state.isPanningPlan = true;
+        state.panStartX = e.touches[0].clientX - state.planPanX;
+        state.panStartY = e.touches[0].clientY - state.planPanY;
+      }
+    });
+
     renderPlan(0);
   }
 
@@ -670,8 +792,31 @@
       return valid;
     }
 
+    // Dynamically load CRM submit module if not already loaded
+    if (typeof window.submitLead !== 'function' && !document.querySelector('script[src*="crm-submit.js"]')) {
+      const crmScript = document.createElement('script');
+      crmScript.src = 'crm-submit.js';
+      document.head.appendChild(crmScript);
+    }
+
+    // Context tracking for entry points without altering steps or visual styling
+    document.querySelectorAll('a[href="#enquiry"]').forEach((link) => {
+      link.addEventListener('click', () => {
+        const text = (link.textContent || '').trim().toLowerCase();
+        if (text.includes('folio') || text.includes('floor')) {
+          state.enquiryData.sourceCta = 'floor_plan';
+        } else if (text.includes('visit') || text.includes('presentation')) {
+          state.enquiryData.sourceCta = 'site_visit';
+        } else if (text.includes('touch')) {
+          state.enquiryData.sourceCta = 'contact';
+        } else {
+          state.enquiryData.sourceCta = 'enquire';
+        }
+      });
+    });
+
     if (dom.enquiryForm) {
-      dom.enquiryForm.addEventListener('submit', (e) => {
+      dom.enquiryForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const isNameValid = validateField(
@@ -721,13 +866,42 @@
         if (confirmName) confirmName.textContent = state.enquiryData.name;
         if (mailtoAction) mailtoAction.href = mailtoUri;
 
-        setTimeout(() => {
-          goToStep(4);
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit Enquiry';
+        // Resolve form_type from intent or entry point
+        let formType = 'enquire';
+        if (typeof window.resolveFormType === 'function' && state.enquiryData.intent) {
+          formType = window.resolveFormType(state.enquiryData.intent);
+        } else if (state.enquiryData.sourceCta) {
+          formType = state.enquiryData.sourceCta;
+        }
+
+        // Post to live Supabase CRM
+        if (typeof window.submitLead === 'function') {
+          try {
+            await window.submitLead({
+              name: state.enquiryData.name,
+              phone: state.enquiryData.phone,
+              email: state.enquiryData.email,
+              project: state.enquiryData.project,
+              interest: state.enquiryData.intent,
+              message: state.enquiryData.notes,
+              form_type: formType,
+              consent: true,
+              consent_text: 'By submitting, you agree to be contacted by Skyscraper about your enquiry by phone, WhatsApp or email.',
+              consent_at: new Date().toISOString(),
+              lat: state.enquiryData.lat !== undefined ? state.enquiryData.lat : null,
+              lng: state.enquiryData.lng !== undefined ? state.enquiryData.lng : null
+            });
+          } catch (err) {
+            console.error('[CRM Submit Error]', err);
           }
-        }, 600);
+        }
+
+        // Advance to existing confirmation state
+        goToStep(4);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Enquiry';
+        }
       });
     }
   }
@@ -826,16 +1000,789 @@
   }
 
   // ============================================================
+  // SECTION 7: KINETIC TYPOGRAPHY SYSTEM
+  // Editorial, architectural masking, scale, and tracking
+  // ============================================================
+  function initKineticTypography() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    // 1. Editorial Headings: Architectural Line Masking & Staggered Reveal
+    const editorialTitles = document.querySelectorAll('.editorial__title');
+    editorialTitles.forEach((heading) => {
+      const originalText = heading.textContent.trim();
+      if (!originalText || heading.querySelector('.kinetic-line')) return;
+      heading.setAttribute('aria-label', originalText);
+
+      // Split into balanced architectural lines
+      const words = originalText.split(/\s+/);
+      let lineChunks = [];
+      if (words.length <= 4) {
+        lineChunks = [words.join(' ')];
+      } else if (words.length <= 8) {
+        const mid = Math.ceil(words.length / 2);
+        lineChunks = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+      } else {
+        const third = Math.ceil(words.length / 3);
+        lineChunks = [
+          words.slice(0, third).join(' '),
+          words.slice(third, third * 2).join(' '),
+          words.slice(third * 2).join(' ')
+        ];
+      }
+
+      heading.innerHTML = lineChunks
+        .map((text) => `<span class="kinetic-line-wrap"><span class="kinetic-line">${text}</span></span>`)
+        .join('');
+
+      if ('IntersectionObserver' in window) {
+        const obs = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              heading.querySelectorAll('.kinetic-line').forEach((line) => line.classList.add('revealed'));
+              observer.unobserve(heading);
+            }
+          });
+        }, { threshold: 0.2 });
+        obs.observe(heading);
+      } else {
+        heading.querySelectorAll('.kinetic-line').forEach((line) => line.classList.add('revealed'));
+      }
+    });
+
+    // 2. Philosophy Words: Monumental Architectural Kinetic Tracking & Depth
+    const philosophyItems = document.querySelectorAll('.philosophy__item');
+    if (philosophyItems.length > 0 && window.innerWidth > 768) {
+      let ticking = false;
+      const updatePhilosophyKinetic = () => {
+        const vh = window.innerHeight;
+        philosophyItems.forEach((item) => {
+          const word = item.querySelector('.philosophy__word');
+          if (!word) return;
+          const rect = item.getBoundingClientRect();
+          if (rect.bottom > 0 && rect.top < vh) {
+            const centerOffset = (vh / 2 - (rect.top + rect.height / 2)) / vh;
+            const yShift = centerOffset * -20;
+            const tracking = 0.03 + (1 - Math.min(1, Math.abs(centerOffset) * 2)) * 0.035;
+            word.style.transform = `translateY(${yShift.toFixed(1)}px) translateZ(0)`;
+            word.style.letterSpacing = `${tracking.toFixed(3)}em`;
+          }
+        });
+        ticking = false;
+      };
+
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(updatePhilosophyKinetic);
+        }
+      }, { passive: true });
+    }
+
+    // 3. "The Work Continues" Expansive Letter-Spacing Reveal
+    const futureTitle = document.querySelector('.future__title');
+    if (futureTitle && 'IntersectionObserver' in window) {
+      const obs = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            futureTitle.classList.add('revealed');
+            observer.unobserve(futureTitle);
+          }
+        });
+      }, { threshold: 0.25 });
+      obs.observe(futureTitle);
+    }
+  }
+
+  // ============================================================
+  // SECTION 8: CINEMATIC SECTION TRANSITIONS & MULTI-PLANE PARALLAX
+  // ============================================================
+  function initCinematicTransitions() {
+    const isMobile = window.innerWidth <= 768;
+
+    // 1. Multi-plane image parallax (smooth 5% travel within overflow container)
+    if (!isMobile) {
+      const parallaxImages = document.querySelectorAll(
+        '.editorial__image img, .sold-out__image img, .project-hero__bg img'
+      );
+
+      if (parallaxImages.length > 0) {
+        let ticking = false;
+        const updateParallax = () => {
+          const vh = window.innerHeight;
+          parallaxImages.forEach((img) => {
+            const parent = img.parentElement;
+            if (!parent) return;
+            const rect = parent.getBoundingClientRect();
+            if (rect.bottom > 0 && rect.top < vh) {
+              const progress = (vh - rect.top) / (vh + rect.height);
+              const yOffset = (progress - 0.5) * -28;
+              img.style.transform = `translate3d(0, ${yOffset.toFixed(1)}px, 0) scale(1.06)`;
+            }
+          });
+          ticking = false;
+        };
+
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(updateParallax);
+          }
+        }, { passive: true });
+      }
+
+      // 2. 3D Card Hover Perspective on Deonarayan detail cards
+      const detailCards = document.querySelectorAll('.project-hero__details > div');
+      detailCards.forEach((card) => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          const rotX = (-y / (rect.height / 2)) * 5;
+          const rotY = (x / (rect.width / 2)) * 5;
+          card.style.transform = `perspective(600px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-3px)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) translateY(0)';
+        });
+      });
+    }
+  }
+
+  // ============================================================
+  // SECTION 9: SELECTIVE SPATIAL THREE.JS ENHANCEMENT
+  // 1-2 Subtle Architectural Moments · Strict Performance Controls
+  // ============================================================
+  function initSpatialMoments() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    function setupSpatialScenes() {
+      if (typeof window.THREE === 'undefined') {
+        window.addEventListener('load', () => {
+          if (typeof window.THREE !== 'undefined') setupSpatialScenes();
+        }, { once: true });
+        return;
+      }
+
+      const THREE = window.THREE;
+      const isMobile = window.innerWidth <= 768;
+
+      // -------------------------------------------------------------
+      // MOMENT 1: Brand Resolution Architectural Coordinate Depth Field
+      // -------------------------------------------------------------
+      const brandCanvas = document.getElementById('brandSpatialCanvas');
+      if (brandCanvas && dom.brandResolve) {
+        try {
+          let brandActive = false;
+          let brandAnimId = null;
+
+          const renderer = new THREE.WebGLRenderer({
+            canvas: brandCanvas,
+            alpha: true,
+            antialias: !isMobile,
+            powerPreference: 'low-power'
+          });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1 : 1.5));
+
+          const scene = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(45, (brandCanvas.clientWidth || window.innerWidth) / (brandCanvas.clientHeight || window.innerHeight || 1), 0.1, 100);
+          camera.position.set(0, 1.8, 7);
+          camera.lookAt(0, 0, 0);
+
+          // Subtle architectural coordinate plane
+          const grid = new THREE.GridHelper(14, 18, 0xc8a86b, 0x2e2b26);
+          grid.position.y = -1.4;
+          grid.material.opacity = isMobile ? 0.16 : 0.26;
+          grid.material.transparent = true;
+          scene.add(grid);
+
+          // Architectural ambient dust motes
+          const count = isMobile ? 24 : 70;
+          const geo = new THREE.BufferGeometry();
+          const pos = new Float32Array(count * 3);
+          const drift = new Float32Array(count);
+          for (let i = 0; i < count; i++) {
+            pos[i * 3] = (Math.random() - 0.5) * 12;
+            pos[i * 3 + 1] = Math.random() * 5 - 1.5;
+            pos[i * 3 + 2] = (Math.random() - 0.5) * 8;
+            drift[i] = 0.0015 + Math.random() * 0.003;
+          }
+          geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+          const mat = new THREE.PointsMaterial({
+            color: 0xc8a86b,
+            size: isMobile ? 0.035 : 0.048,
+            transparent: true,
+            opacity: 0.45,
+            blending: THREE.AdditiveBlending
+          });
+          const points = new THREE.Points(geo, mat);
+          scene.add(points);
+
+          let targetX = 0;
+          let targetY = 0;
+          if (!isMobile) {
+            window.addEventListener('mousemove', (e) => {
+              targetX = (e.clientX / window.innerWidth - 0.5) * 0.45;
+              targetY = (e.clientY / window.innerHeight - 0.5) * 0.28;
+            }, { passive: true });
+          }
+
+          const resizeBrand = () => {
+            const w = brandCanvas.parentElement ? brandCanvas.parentElement.clientWidth : window.innerWidth;
+            const h = brandCanvas.parentElement ? brandCanvas.parentElement.clientHeight : window.innerHeight;
+            camera.aspect = w / (h || 1);
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h, false);
+          };
+          resizeBrand();
+          window.addEventListener('resize', resizeBrand);
+
+          const renderBrand = () => {
+            if (!brandActive) return;
+
+            camera.position.x += (targetX - camera.position.x) * 0.04;
+            camera.position.y += (1.8 - targetY - camera.position.y) * 0.04;
+            camera.lookAt(0, 0, 0);
+
+            const positions = points.geometry.attributes.position.array;
+            for (let i = 0; i < count; i++) {
+              positions[i * 3 + 1] += drift[i];
+              if (positions[i * 3 + 1] > 3.5) positions[i * 3 + 1] = -1.5;
+            }
+            points.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+            brandAnimId = requestAnimationFrame(renderBrand);
+          };
+
+          // Strict IntersectionObserver: Pause WebGL completely when not visible
+          if ('IntersectionObserver' in window) {
+            const obs = new IntersectionObserver((entries) => {
+              entries.forEach((entry) => {
+                brandActive = entry.isIntersecting;
+                if (brandActive) {
+                  if (!brandAnimId) renderBrand();
+                } else {
+                  if (brandAnimId) {
+                    cancelAnimationFrame(brandAnimId);
+                    brandAnimId = null;
+                  }
+                }
+              });
+            }, { threshold: 0.05 });
+            obs.observe(dom.brandResolve);
+          } else {
+            brandActive = true;
+            renderBrand();
+          }
+        } catch (err) {
+          console.warn('Brand spatial WebGL fallback:', err);
+        }
+      }
+
+      // -------------------------------------------------------------
+      // MOMENT 2: Future Section Architectural Horizon & Spatial Ring
+      // -------------------------------------------------------------
+      const futureCanvas = document.getElementById('futureSpatialCanvas');
+      const futureSection = document.getElementById('future');
+      if (futureCanvas && futureSection) {
+        try {
+          let futureActive = false;
+          let futureAnimId = null;
+
+          const renderer = new THREE.WebGLRenderer({
+            canvas: futureCanvas,
+            alpha: true,
+            antialias: !isMobile,
+            powerPreference: 'low-power'
+          });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1 : 1.5));
+
+          const scene = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(50, (futureCanvas.clientWidth || window.innerWidth) / (futureCanvas.clientHeight || window.innerHeight || 1), 0.1, 100);
+          camera.position.set(0, 1.6, 6.5);
+          camera.lookAt(0, 0, 0);
+
+          // Architectural receding horizon grid
+          const horizon = new THREE.GridHelper(16, 20, 0xc8a86b, 0x1f2226);
+          horizon.position.y = -1.2;
+          horizon.material.opacity = isMobile ? 0.18 : 0.28;
+          horizon.material.transparent = true;
+          scene.add(horizon);
+
+          // ThreeUI Codex-inspired spatial architectural ring
+          const ringGeo = new THREE.RingGeometry(1.9, 1.925, 64);
+          const ringMat = new THREE.MeshBasicMaterial({
+            color: 0xc8a86b,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.35
+          });
+          const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+          ringMesh.rotation.x = Math.PI * 0.38;
+          scene.add(ringMesh);
+
+          // Outer concentric secondary compass ring
+          const ringGeo2 = new THREE.RingGeometry(2.5, 2.518, 64);
+          const ringMat2 = new THREE.MeshBasicMaterial({
+            color: 0x9c8454,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.18
+          });
+          const ringMesh2 = new THREE.Mesh(ringGeo2, ringMat2);
+          ringMesh2.rotation.x = Math.PI * 0.38;
+          scene.add(ringMesh2);
+
+          let mouseX = 0;
+          let mouseY = 0;
+          if (!isMobile) {
+            window.addEventListener('mousemove', (e) => {
+              mouseX = (e.clientX / window.innerWidth - 0.5) * 0.35;
+              mouseY = (e.clientY / window.innerHeight - 0.5) * 0.22;
+            }, { passive: true });
+          }
+
+          const resizeFuture = () => {
+            const w = futureCanvas.parentElement ? futureCanvas.parentElement.clientWidth : window.innerWidth;
+            const h = futureCanvas.parentElement ? futureCanvas.parentElement.clientHeight : window.innerHeight;
+            camera.aspect = w / (h || 1);
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h, false);
+          };
+          resizeFuture();
+          window.addEventListener('resize', resizeFuture);
+
+          const renderFuture = () => {
+            if (!futureActive) return;
+
+            ringMesh.rotation.z += 0.0016;
+            ringMesh2.rotation.z -= 0.0010;
+
+            camera.position.x += (mouseX - camera.position.x) * 0.04;
+            camera.position.y += (1.6 - mouseY - camera.position.y) * 0.04;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+            futureAnimId = requestAnimationFrame(renderFuture);
+          };
+
+          // Strict IntersectionObserver: Pause WebGL completely when future is out of viewport
+          if ('IntersectionObserver' in window) {
+            const obs = new IntersectionObserver((entries) => {
+              entries.forEach((entry) => {
+                futureActive = entry.isIntersecting;
+                if (futureActive) {
+                  if (!futureAnimId) renderFuture();
+                } else {
+                  if (futureAnimId) {
+                    cancelAnimationFrame(futureAnimId);
+                    futureAnimId = null;
+                  }
+                }
+              });
+            }, { threshold: 0.05 });
+            obs.observe(futureSection);
+          } else {
+            futureActive = true;
+            renderFuture();
+          }
+        } catch (err) {
+          console.warn('Future spatial WebGL fallback:', err);
+        }
+      }
+
+      // Global tab visibility pause: zero CPU/GPU consumption when backgrounded
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (brandAnimId) cancelAnimationFrame(brandAnimId);
+          if (futureAnimId) cancelAnimationFrame(futureAnimId);
+        }
+      });
+    }
+
+    setupSpatialScenes();
+  }
+
+  // ============================================================
+  // SPECIFICATIONS VIDEO MOTION WINDOW
+  // Must remain real video, autoplay, loop, muted, inline, zero audio
+  // ============================================================
+  function initSpecificationVideo() {
+    const video = dom.specVideo || document.getElementById('specificationVideo');
+    if (!video) return;
+
+    // Strict requirements: autoplay, loop continuously, remain muted, inline
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
+    video.loop = true;
+    video.playsInline = true;
+    video.removeAttribute('controls');
+
+    const attemptPlay = () => {
+      video.muted = true;
+      video.volume = 0;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // If browser blocked autoplay, attempt muted retry on user interaction
+          const resumeOnAction = () => {
+            video.muted = true;
+            video.volume = 0;
+            video.play().catch(() => {});
+            window.removeEventListener('click', resumeOnAction);
+            window.removeEventListener('scroll', resumeOnAction);
+            window.removeEventListener('touchstart', resumeOnAction);
+          };
+          window.addEventListener('click', resumeOnAction, { once: true });
+          window.addEventListener('scroll', resumeOnAction, { once: true, passive: true });
+          window.addEventListener('touchstart', resumeOnAction, { once: true, passive: true });
+        });
+      }
+    };
+
+    attemptPlay();
+
+    // IntersectionObserver to optimize and resume playing when in view
+    if ('IntersectionObserver' in window) {
+      const specObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            attemptPlay();
+          }
+        });
+      }, { threshold: 0.1 });
+      specObserver.observe(video);
+    }
+
+    // Ensure it continues playing
+    video.addEventListener('pause', () => {
+      if (!video.seeking) {
+        setTimeout(attemptPlay, 100);
+      }
+    });
+
+    // Enforce silence on volume changes
+    video.addEventListener('volumechange', () => {
+      if (!video.muted || video.volume > 0) {
+        video.muted = true;
+        video.volume = 0;
+      }
+    });
+  }
+
+  // ============================================================
+  // ZERO AUDIO — GLOBAL REQUIREMENT (COMPLETE SILENCE)
+  // Absolutely no audio anywhere on website
+  // ============================================================
+  function initGlobalAudioControl() {
+    const silenceElement = (el) => {
+      el.muted = true;
+      el.defaultMuted = true;
+      el.volume = 0;
+      el.removeAttribute('controls');
+      el.addEventListener('volumechange', () => {
+        if (!el.muted || el.volume > 0) {
+          el.muted = true;
+          el.volume = 0;
+        }
+      });
+    };
+
+    document.querySelectorAll('video, audio').forEach(silenceElement);
+
+    // Guard against dynamically inserted media
+    const mediaObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            if (node.matches && (node.matches('video') || node.matches('audio'))) {
+              silenceElement(node);
+            }
+            if (node.querySelectorAll) {
+              node.querySelectorAll('video, audio').forEach(silenceElement);
+            }
+          }
+        });
+      });
+    });
+    mediaObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // ============================================================
+  // LENIS SMOOTH SCROLLING ENGINE
+  // Controlled, premium, cinematic, natural without breaking navigation
+  // ============================================================
+  let lenisInstance = null;
+
+  function initLenisSmoothScroll() {
+    if (typeof Lenis === 'undefined') return;
+
+    try {
+      lenisInstance = new Lenis({
+        duration: 1.15,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+        wheelMultiplier: 1.0,
+        touchMultiplier: 1.25,
+        infinite: false,
+      });
+
+      function raf(time) {
+        lenisInstance.raf(time);
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+
+      // Anchor link clicks for smooth Lenis scrolling
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', (e) => {
+          const targetId = anchor.getAttribute('href');
+          if (targetId && targetId !== '#') {
+            const targetEl = document.querySelector(targetId);
+            if (targetEl) {
+              e.preventDefault();
+              lenisInstance.scrollTo(targetEl, {
+                offset: -40,
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+              });
+            }
+          }
+        });
+      });
+    } catch (err) {
+      console.warn('Lenis smooth scroll fallback to native:', err);
+    }
+  }
+
+  // ============================================================
+  // COMPLIANCE SUITE (DISCLAIMER NOTICE, COOKIE BAR, GEOLOCATION)
+  // Calm architectural luxury, zero obstruction over entry film
+  // ============================================================
+  let complianceFlowStarted = false;
+  let lastActiveFocus = null;
+
+  function triggerPostHeroCompliance() {
+    if (complianceFlowStarted) return;
+    complianceFlowStarted = true;
+    setTimeout(() => {
+      startComplianceFlow();
+    }, 600);
+  }
+
+  function startComplianceFlow() {
+    const isDisclaimerDismissed = localStorage.getItem('skyscraper_disclaimer_dismissed');
+    if (!isDisclaimerDismissed) {
+      showDisclaimerNotice();
+    } else {
+      checkCookieConsent();
+    }
+  }
+
+  function showDisclaimerNotice() {
+    if (!dom.disclaimerModal) return;
+    lastActiveFocus = document.activeElement;
+    dom.disclaimerModal.classList.add('active');
+
+    if (dom.disclaimerDismissBtn) {
+      dom.disclaimerDismissBtn.focus();
+    }
+
+    const onDisclaimerKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        dismissDisclaimerNotice();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const focusables = dom.disclaimerModal.querySelectorAll('a[href], button:not([disabled])');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onDisclaimerKeyDown);
+    dom._onDisclaimerKeyDown = onDisclaimerKeyDown;
+  }
+
+  function dismissDisclaimerNotice() {
+    if (!dom.disclaimerModal) return;
+    try {
+      localStorage.setItem('skyscraper_disclaimer_dismissed', new Date().toISOString());
+    } catch (e) {}
+
+    dom.disclaimerModal.classList.remove('active');
+
+    if (dom._onDisclaimerKeyDown) {
+      window.removeEventListener('keydown', dom._onDisclaimerKeyDown);
+      dom._onDisclaimerKeyDown = null;
+    }
+
+    if (lastActiveFocus && typeof lastActiveFocus.focus === 'function') {
+      try {
+        lastActiveFocus.focus();
+      } catch (e) {}
+    }
+
+    // Sequence requirement: show cookie bar only AFTER disclaimer is dismissed
+    checkCookieConsent();
+  }
+
+  function checkCookieConsent() {
+    const consent = localStorage.getItem('skyscraper_cookie_consent');
+
+    if (consent === 'accepted') {
+      unGateThirdPartyEmbeds();
+      return;
+    }
+
+    if (consent === 'declined') {
+      return; // remains gated, do not show bar
+    }
+
+    // If neither accepted nor declined, display slim cookie bar
+    if (dom.cookieBar) {
+      dom.cookieBar.classList.add('active');
+    }
+  }
+
+  function unGateThirdPartyEmbeds() {
+    document.querySelectorAll('iframe[data-cookie-src]').forEach((iframe) => {
+      if (iframe.dataset.cookieSrc && iframe.src !== iframe.dataset.cookieSrc) {
+        iframe.src = iframe.dataset.cookieSrc;
+      }
+    });
+  }
+
+  function handleCookieChoice(choice) {
+    try {
+      localStorage.setItem('skyscraper_cookie_consent', choice);
+      localStorage.setItem('skyscraper_cookie_consent_at', new Date().toISOString());
+    } catch (e) {}
+
+    if (dom.cookieBar) {
+      dom.cookieBar.classList.remove('active');
+    }
+
+    if (choice === 'accepted') {
+      unGateThirdPartyEmbeds();
+    }
+  }
+
+  // Geolocation: Request strictly on user click of site-visit or location CTA
+  function requestGeolocationOnUserAction() {
+    if (state.enquiryData.lat !== undefined && state.enquiryData.lat !== null) return;
+    if (!('geolocation' in navigator)) return;
+
+    try {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (pos && pos.coords) {
+            state.enquiryData.lat = Math.round(pos.coords.latitude * 1000) / 1000;
+            state.enquiryData.lng = Math.round(pos.coords.longitude * 1000) / 1000;
+          }
+        },
+        (err) => {
+          // Graceful fallback: silently ignore error; form submits normally
+          console.warn('[Geolocation] Non-blocking permission/error:', err.message);
+        },
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+      );
+    } catch (e) {
+      console.warn('[Geolocation] Invocation error:', e);
+    }
+  }
+
+  function initComplianceSuite() {
+    if (dom.disclaimerDismissBtn) {
+      dom.disclaimerDismissBtn.addEventListener('click', dismissDisclaimerNotice);
+    }
+    if (dom.disclaimerBackdrop) {
+      dom.disclaimerBackdrop.addEventListener('click', dismissDisclaimerNotice);
+    }
+
+    if (dom.cookieAcceptBtn) {
+      dom.cookieAcceptBtn.addEventListener('click', () => handleCookieChoice('accepted'));
+    }
+    if (dom.cookieDeclineBtn) {
+      dom.cookieDeclineBtn.addEventListener('click', () => handleCookieChoice('declined'));
+    }
+
+    // Check if user has already accepted cookies in a previous session
+    if (localStorage.getItem('skyscraper_cookie_consent') === 'accepted') {
+      unGateThirdPartyEmbeds();
+    }
+
+    // Attach Geolocation trigger to existing site-visit and location CTAs
+    document.querySelectorAll('a[href="#enquiry"], a[href="#location"]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const text = (el.textContent || '').toLowerCase();
+        if (text.includes('visit') || text.includes('presentation') || el.getAttribute('href') === '#location') {
+          requestGeolocationOnUserAction();
+        }
+      });
+    });
+
+    // Also trigger if user selects site visit intent in Step 1
+    const siteVisitIntentBtn = document.querySelector('[data-enquiry-intent*="Site Visit"]');
+    if (siteVisitIntentBtn) {
+      siteVisitIntentBtn.addEventListener('click', requestGeolocationOnUserAction);
+    }
+
+    // Observe brand resolution section so compliance triggers once resolved
+    if (dom.brandResolve && 'IntersectionObserver' in window) {
+      const brandObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            triggerPostHeroCompliance();
+            brandObserver.disconnect();
+          }
+        });
+      }, { threshold: 0.15 });
+      brandObserver.observe(dom.brandResolve);
+    }
+  }
+
+  // ============================================================
   // INIT
   // ============================================================
   function init() {
     cacheDom();
+    initGlobalAudioControl();
     initHeroFilm();
     new FrameScroller();
+    initSpecificationVideo();
     initFloorPlanViewer();
     initEnquiryFlow();
     initNavigation();
     initRevealObserver();
+    initKineticTypography();
+    initCinematicTransitions();
+    initSpatialMoments();
+    initLenisSmoothScroll();
+    initComplianceSuite();
   }
 
   if (document.readyState === 'loading') {
