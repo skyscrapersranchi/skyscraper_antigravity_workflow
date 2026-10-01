@@ -2675,7 +2675,7 @@ ul, ol {
   }
 
   .editorial__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-xl);
   }
 
@@ -2684,7 +2684,7 @@ ul, ol {
   }
 
   .philosophy__item {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     min-height: auto;
   }
 
@@ -2984,7 +2984,7 @@ ul, ol {
 
   /* --- PHASE 07: EDITORIAL INTRODUCTION --- */
   .editorial__grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: var(--space-xl) !important;
   }
 
@@ -3031,7 +3031,7 @@ ul, ol {
 
   /* --- PHASE 08: PHILOSOPHY --- */
   .philosophy__item {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     min-height: auto !important;
     margin-bottom: var(--space-2xl);
   }
@@ -3185,13 +3185,16 @@ ul, ol {
 
   /* --- PHASE 12: CURATED MOMENTS GALLERY GRID --- */
   .curated-moments__grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: var(--space-lg) !important;
   }
 
-  .curated-moments__grid > div {
-    grid-column: span 12 / span 12 !important;
+  .curated-moments__grid > div,
+  .editorial__grid > div {
+    grid-column: 1 / -1 !important;
     width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* --- PHASE 13: ORIGINAL ARCHITECTURAL FLOOR PLANS --- */
