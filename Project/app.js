@@ -618,70 +618,29 @@
       }
     }
 
-    onScroll() {
-      if (!dom.archSection || this.isPaused) return;
-      if (!this.sectionScrollHeight) this.updateSectionMetrics();
-      if (this.sectionScrollHeight <= 0) return;
+    destroy() {
+      this.isPaused = true;
+      this.isRendering = false;
 
-      const relativeY = window.scrollY - this.sectionTop;
-      const scrollProgress = Math.max(0, Math.min(1, relativeY / this.sectionScrollHeight));
-      const targetFrame = Math.round(1 + scrollProgress * (this.totalFrames - 1));
-      this.targetFrameIndex = Math.max(1, Math.min(this.totalFrames, targetFrame));
-
-      if (Math.abs(this.targetFrameIndex - this.lastQueuedFrame) >= 2) {
-        this.lastQueuedFrame = this.targetFrameIndex;
-        this.queueNeighborFrames(this.targetFrameIndex);
+      if (this.scrollTrigger) {
+        this.scrollTrigger.kill();
       }
 
-      if (!this.isRendering) {
-        this.isRendering = true;
-        requestAnimationFrame(() => this.loop());
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect();
       }
-    }
-
-    loop() {
-      if (this.isPaused || document.hidden) {
-        this.isRendering = false;
-        return;
-      }
-
-      const diff = this.targetFrameIndex - this.currentFrameIndex;
-      const absDiff = Math.abs(diff);
-
-      if (absDiff > 0.04) {
-        const lerpFactor = Math.min(0.22, 0.11 + absDiff * 0.0035);
-        this.currentFrameIndex += diff * lerpFactor;
-        const rounded = Math.round(this.currentFrameIndex);
-        if (rounded !== this.lastDrawnFrame) {
-          this.renderFrame(rounded);
-          this.updatePhase(rounded);
-        }
-
-        if (this.canvas) {
-          const velocity = Math.min(1, absDiff / 25);
-          const focalScale = 1.0 + velocity * 0.006;
-          this.canvas.style.transform = `scale(${focalScale.toFixed(4)}) translateZ(0)`;
-        }
-
-        requestAnimationFrame(() => this.loop());
-      } else {
-        // Target reached: draw exact final frame and stop rAF loop (idle pause)
-        this.currentFrameIndex = this.targetFrameIndex;
-        const rounded = Math.round(this.currentFrameIndex);
-        this.renderFrame(rounded);
-        this.updatePhase(rounded);
-        if (this.canvas) {
-          this.canvas.style.transform = 'scale(1) translateZ(0)';
-        }
-        this.isRendering = false;
-      }
+      
+      this.decodedFrames.clear();
+      this.prefetchedSet.clear();
+      this.enqueuedDecodeSet.clear();
+      this.decodeQueue = [];
+      this.prefetchQueue = [];
     }
 
     init() {
       this.isPaused = false;
       this.resize();
 
-      // Debounced ResizeObserver for window resize and DPR changes
       if ('ResizeObserver' in window && this.canvas.parentElement) {
         let rAFResize = null;
         this.resizeObserver = new ResizeObserver(() => {
@@ -691,7 +650,6 @@
         this.resizeObserver.observe(this.canvas.parentElement);
       }
 
-      // Initial batch load then full background sequence right after first paint
       requestAnimationFrame(() => {
         this.queueNeighborFrames(1);
         setTimeout(() => {
@@ -699,45 +657,38 @@
         }, 120);
       });
 
-      // Passive scroll listener
-      const scrollOpts = { passive: true };
-      if (this.signal) scrollOpts.signal = this.signal;
-      window.addEventListener('scroll', () => this.onScroll(), scrollOpts);
-
-      // Handle tab visibility change
-      const visOpts = {};
-      if (this.signal) visOpts.signal = this.signal;
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && !this.isPaused && Math.abs(this.targetFrameIndex - this.currentFrameIndex) > 0.04) {
-          if (!this.isRendering) {
-            this.isRendering = true;
-            requestAnimationFrame(() => this.loop());
-          }
-        }
-      }, visOpts);
-
-      // Pause rendering when architectural walkthrough is out of viewport
-      if ('IntersectionObserver' in window && dom.archSection) {
-        this.sectionObserver = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            this.isPaused = !entry.isIntersecting;
-            if (entry.isIntersecting && !this.isRendering) {
-              this.onScroll();
+      // Initialize GSAP ScrollTrigger to precisely map scroll progress to frames
+      if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && dom.archSection) {
+        gsap.registerPlugin(ScrollTrigger);
+        
+        this.scrollTrigger = ScrollTrigger.create({
+          trigger: dom.archSection,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: true,
+          onUpdate: (self) => {
+            if (this.isPaused) return;
+            const progress = self.progress; // 0 to 1
+            const calculatedFrame = Math.floor(progress * (this.totalFrames - 1)) + 1;
+            this.targetFrameIndex = calculatedFrame;
+            
+            if (calculatedFrame !== this.currentFrameIndex) {
+              this.currentFrameIndex = calculatedFrame;
+              
+              if (Math.abs(this.currentFrameIndex - this.lastQueuedFrame) >= 2) {
+                this.lastQueuedFrame = this.currentFrameIndex;
+                this.queueNeighborFrames(this.currentFrameIndex);
+              }
+              
+              requestAnimationFrame(() => {
+                this.renderFrame(this.currentFrameIndex);
+                this.updatePhase(this.currentFrameIndex);
+              });
             }
-          });
-        }, { rootMargin: '120px 0px 120px 0px', threshold: 0.01 });
-        this.sectionObserver.observe(dom.archSection);
-        if (Array.isArray(activeObservers)) {
-          activeObservers.push(this.sectionObserver);
-        }
+          }
+        });
       }
     }
-
-    destroy() {
-      this.isPaused = true;
-      this.isRendering = false;
-
-      if (this.resizeObserver) {
         this.resizeObserver.disconnect();
         this.resizeObserver = null;
       }
