@@ -3588,7 +3588,7 @@ ul, ol {
     padding: var(--space-3xl) var(--gutter) !important;
   }
   .final-brand__bg img {
-    object-position: center bottom !important;
+    object-position: center center !important;
   }
 
   .footer {
