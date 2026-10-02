@@ -1434,21 +1434,48 @@ ul, ol {
 }
 
 .location__map {
-  aspect-ratio: 4/3;
   background: var(--charcoal);
   overflow: hidden;
+  position: relative;
+  display: block;
 }
 
-.location__map iframe {
+.location__map-link {
+  display: block;
   width: 100%;
   height: 100%;
-  border: none;
-  filter: grayscale(0.8) contrast(1.1) brightness(0.6);
-  transition: filter var(--duration-normal) var(--ease-out);
+  position: relative;
+  text-decoration: none;
 }
 
-.location__map:hover iframe {
-  filter: grayscale(0.4) contrast(1.05) brightness(0.7);
+.location__map-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 1px solid var(--accent-gold);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  display: block;
+}
+
+.location__map-label {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: var(--black);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.location__map-link:hover .location__map-label {
+  background: var(--accent-gold);
+  color: var(--black);
 }
 
 /* ============================================================
@@ -1803,13 +1830,47 @@ ul, ol {
 
 .final-brand {
   min-height: 60vh;
+  padding: var(--space-4xl) var(--gutter);
+  background: var(--black);
+  position: relative;
+}
+
+.final-brand__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.final-brand__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  opacity: var(--closing-bg-opacity, 0.35);
+  max-width: 1920px;
+  margin: 0 auto;
+  display: block;
+}
+
+.final-brand__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.25));
+  z-index: 1;
+}
+
+.final-brand__content {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--space-4xl) var(--gutter);
-  background: var(--black);
+  width: 100%;
+  height: 100%;
 }
 
 .final-brand__logo {
@@ -3364,7 +3425,7 @@ ul, ol {
     padding-top: 0 !important;
   }
 
-  .location__map {
+  .location__map-img {
     aspect-ratio: 16 / 10 !important;
     border-radius: 4px;
   }

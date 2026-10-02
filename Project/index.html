@@ -857,15 +857,10 @@
         </div>
 
         <div class="location__map reveal reveal--delay-2">
-          <!-- Monochromatic architectural map embed centered on Hazaribagh Forest Colony / New Bus Stand -->
-          <iframe 
-            title="Deonarayan Estate Location Map"
-            src="about:blank"
-            data-cookie-src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14603.585721867168!2d85.3524956!3d23.9902641!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f49c06342898cf%3A0x6b1ec64627ef6781!2sForest%20Colony%2C%20Hazaribagh%2C%20Jharkhand%20825301!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-            allowfullscreen="" 
-            loading="lazy" 
-            referrerpolicy="no-referrer-when-downgrade">
-          </iframe>
+          <a href="#" id="locationMapLink" class="location__map-link" target="_blank" rel="noopener noreferrer" aria-label="Open location in Google Maps">
+            <img src="assets/mapillustration.png" alt="Skyscraper Location Map" loading="lazy" class="location__map-img">
+            <span class="location__map-label">Open in Maps ↗</span>
+          </a>
         </div>
       </div>
     </section>
@@ -1145,13 +1140,18 @@
          PHASE 20 — FINAL BRAND FRAME & REGULATORY REGISTER
          ============================================================ -->
     <section class="final-brand section--dark" aria-label="Final Brand Signature">
-      <img src="assets/logofiles/logoskyscraper.svg" alt="Skyscraper Architectural Signature" class="final-brand__logo">
-      <p class="final-brand__tagline">"Bring home to quality"</p>
-      
-      <a href="#enquiry" class="cta-link">
-        <span>Start a Conversation</span>
-        <span class="cta-link__arrow" aria-hidden="true"></span>
-      </a>
+      <div class="final-brand__bg" aria-hidden="true">
+        <img src="assets/lastpagebackgroundimageforlogo.png" alt="" loading="lazy">
+        <div class="final-brand__overlay"></div>
+      </div>
+      <div class="final-brand__content">
+        <img src="assets/logofiles/logoskyscraper.svg" alt="Skyscraper Architectural Signature" class="final-brand__logo">
+        <p class="final-brand__tagline">"Bring home to quality"</p>
+        <a href="#enquiry" class="cta-link">
+          <span>Start a Conversation</span>
+          <span class="cta-link__arrow" aria-hidden="true"></span>
+        </a>
+      </div>
     </section>
 
   </main>
