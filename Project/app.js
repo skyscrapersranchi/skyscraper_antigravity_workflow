@@ -11,6 +11,9 @@
   const FRAME_BASE_PATH = 'media/frames/frame_';
   const FRAME_EXT = '.jpg';
   
+  const PROJECT_LAT = -33.8688;
+  const PROJECT_LNG = 151.2093;
+  
   // High-Resolution Color Floor Plans (Verified from official architectural brochure)
   const FLOOR_PLANS = [
     {
@@ -1974,6 +1977,13 @@
     }
   }
 
+  function initLocationMap() {
+    const mapLink = document.getElementById('locationMapLink');
+    if (mapLink) {
+      mapLink.href = `https://maps.google.com/?q=${PROJECT_LAT},${PROJECT_LNG}`;
+    }
+  }
+
   // ============================================================
   // LIFECYCLE (INIT & DESTROY)
   // Full tear-down on pagehide, restoration from bfcache on pageshow
@@ -1986,6 +1996,7 @@
     const signal = globalAbortController.signal;
 
     cacheDom();
+    initLocationMap();
     initGlobalAudioControl();
     initHeroFilm(signal);
     frameScrollerInstance = new FrameScroller(signal);
