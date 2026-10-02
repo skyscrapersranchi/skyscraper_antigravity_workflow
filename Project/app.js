@@ -309,6 +309,7 @@
       this.totalFrames = TOTAL_FRAMES;
       this.currentFrameIndex = 1;
       this.images = new Map();
+      this.loading = new Set();
       this.activeSceneId = null;
       this.isRendering = false;
       this.pendingFetch = null;
@@ -481,27 +482,54 @@
     }
 
     preloadFrames() {
-      // Preload frames in background to ensure smooth scrubbing
+      // Dynamic priority preloader based on currentFrameIndex
       const maxConcurrent = 6;
       let activeRequests = 0;
-      let targetIndex = 2; // Frame 1 is loaded in init
 
       const loadNext = () => {
-        while (activeRequests < maxConcurrent && targetIndex <= this.totalFrames) {
-          const indexToLoad = targetIndex++;
+        while (activeRequests < maxConcurrent) {
+          let indexToLoad = null;
           
-          if (this.images.has(indexToLoad)) {
-            continue;
+          // Lookahead window: try to load frames immediately around current scroll
+          for (let offset = 0; offset <= 30; offset++) {
+            const idx = this.currentFrameIndex + offset;
+            if (idx > 0 && idx <= this.totalFrames && !this.images.has(idx) && !this.loading.has(idx)) {
+              indexToLoad = idx;
+              break;
+            }
+          }
+          // If forward lookahead is complete, buffer slightly behind
+          if (!indexToLoad) {
+            for (let offset = -1; offset >= -10; offset--) {
+              const idx = this.currentFrameIndex + offset;
+              if (idx > 0 && idx <= this.totalFrames && !this.images.has(idx) && !this.loading.has(idx)) {
+                indexToLoad = idx;
+                break;
+              }
+            }
           }
 
+          if (indexToLoad === null) return; // Nothing urgent to load
+
           activeRequests++;
+          this.loading.add(indexToLoad);
+          
           const img = new Image();
           img.onload = () => {
             this.images.set(indexToLoad, img);
+            this.loading.delete(indexToLoad);
             activeRequests--;
+            
+            // If the user is waiting for this exact frame or very close to it, re-render
+            if (Math.abs(this.currentFrameIndex - indexToLoad) <= 2) {
+              if (!this.isRendering) {
+                this.renderFrame(this.currentFrameIndex);
+              }
+            }
             loadNext();
           };
           img.onerror = () => {
+            this.loading.delete(indexToLoad);
             activeRequests--;
             loadNext();
           };
@@ -509,10 +537,11 @@
         }
       };
 
-      // Start preloading gracefully without blocking the main hero load
-      setTimeout(() => {
-        loadNext();
-      }, 500);
+      // Trigger loadNext now
+      loadNext();
+      
+      // Save it so it can be re-triggered from onUpdate
+      this.triggerPreload = loadNext;
     }
 
     init() {
@@ -551,6 +580,9 @@
             
             if (calculatedFrame !== this.currentFrameIndex) {
               this.currentFrameIndex = calculatedFrame;
+              if (this.triggerPreload) {
+                this.triggerPreload();
+              }
               if (!this.isRendering) {
                 this.isRendering = true;
                 requestAnimationFrame(() => {
@@ -1095,6 +1127,42 @@
         heading.querySelectorAll('.kinetic-line').forEach((line) => line.classList.add('revealed'));
       }
     });
+
+    // Identity Transition Reveal & Dynamic Config
+    const PROJECT_LOGOS = {
+      'deonarayan': 'assets/deonarayan_estate_logo.svg',
+      'anima': 'assets/anima_sky_residency_logo.svg'
+    };
+    
+    const identityTransition = document.getElementById('identityTransition');
+    const identityLogo = document.getElementById('identityLogo');
+    
+    if (identityTransition && identityLogo) {
+      const projectId = identityTransition.getAttribute('data-project-id') || 'deonarayan';
+      if (PROJECT_LOGOS[projectId]) {
+        identityLogo.src = PROJECT_LOGOS[projectId];
+      }
+      
+      if ('IntersectionObserver' in window) {
+        const idObs = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // Add a slight delay to ensure it feels like a cinematic hold
+              setTimeout(() => {
+                identityLogo.classList.add('is-revealed');
+              }, 150);
+              observer.unobserve(identityTransition);
+            }
+          });
+        }, { threshold: 0.35 });
+        idObs.observe(identityTransition);
+        if (Array.isArray(activeObservers)) {
+          activeObservers.push(idObs);
+        }
+      } else {
+        identityLogo.classList.add('is-revealed');
+      }
+    }
 
     // 2. Philosophy Words: Monumental Architectural Kinetic Tracking & Depth
     const philosophyItems = document.querySelectorAll('.philosophy__item');
