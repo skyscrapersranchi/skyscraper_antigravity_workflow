@@ -2048,7 +2048,9 @@
   function initLocationMap() {
     const mapLink = document.getElementById('locationMapLink');
     if (mapLink) {
-      mapLink.href = `https://maps.google.com/?q=${PROJECT_LAT},${PROJECT_LNG}`;
+      // Changed from lat/lng to exact address for accurate map pin
+      const address = "Deonarayan Estate, Behind St. Stephen School, New Bus Stand, Forest Colony, Hazaribagh - 825301, Jharkhand, India";
+      mapLink.href = `https://maps.google.com/?q=${encodeURIComponent(address)}`;
     }
   }
 
