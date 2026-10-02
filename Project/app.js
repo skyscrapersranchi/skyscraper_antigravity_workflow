@@ -389,45 +389,23 @@
 
     renderFrame(frameIndex) {
       const index = Math.max(1, Math.min(this.totalFrames, frameIndex));
+      this.updatePhase(index);
       
       let img = this.images.get(index);
       if (img && img.complete && img.naturalWidth > 0) {
         if (this.currentFrameIndex === index) this.drawCover(img);
-        this.updatePhase(index);
         return;
       }
       
-      // Update UI phase text immediately
-      this.updatePhase(index);
-      
-      // Cancel previous pending fetch if it's for a different frame
-      if (this.pendingFetch) {
-        this.pendingFetch.abort();
-        this.pendingFetch = null;
-      }
-
-      this.pendingFetch = new AbortController();
-      const signal = this.pendingFetch.signal;
-
-      fetch(this.getFramePath(index), { signal })
-        .then((res) => {
-          if (!res.ok) throw new Error('Network error');
-          return res.blob();
-        })
-        .then((blob) => {
-          const objectUrl = URL.createObjectURL(blob);
-          const newImg = new Image();
-          newImg.onload = () => {
-            this.images.set(index, newImg);
-            if (this.currentFrameIndex === index) {
-              this.drawCover(newImg);
-            }
-          };
-          newImg.src = objectUrl;
-        })
-        .catch((err) => {
-          // Ignore abort errors
-        });
+      // Fallback: If not preloaded yet, fetch immediately via standard Image
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => {
+        this.images.set(index, fallbackImg);
+        if (this.currentFrameIndex === index) {
+          this.drawCover(fallbackImg);
+        }
+      };
+      fallbackImg.src = this.getFramePath(index);
     }
 
     updatePhase(frameIndex) {
@@ -496,12 +474,50 @@
       this.images.clear();
     }
 
+    preloadFrames() {
+      // Preload frames in background to ensure smooth scrubbing
+      const maxConcurrent = 6;
+      let activeRequests = 0;
+      let targetIndex = 2; // Frame 1 is loaded in init
+
+      const loadNext = () => {
+        while (activeRequests < maxConcurrent && targetIndex <= this.totalFrames) {
+          const indexToLoad = targetIndex++;
+          
+          if (this.images.has(indexToLoad)) {
+            continue;
+          }
+
+          activeRequests++;
+          const img = new Image();
+          img.onload = () => {
+            this.images.set(indexToLoad, img);
+            activeRequests--;
+            loadNext();
+          };
+          img.onerror = () => {
+            activeRequests--;
+            loadNext();
+          };
+          img.src = this.getFramePath(indexToLoad);
+        }
+      };
+
+      // Start preloading gracefully without blocking the main hero load
+      setTimeout(() => {
+        loadNext();
+      }, 500);
+    }
+
     init() {
       // Load only the first frame immediately
       const firstImg = new Image();
       firstImg.src = this.getFramePath(1);
       this.images.set(1, firstImg);
-      firstImg.onload = () => this.renderFrame(1);
+      firstImg.onload = () => {
+        this.renderFrame(1);
+        this.preloadFrames();
+      };
 
       this.resize();
 
