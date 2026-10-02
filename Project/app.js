@@ -398,8 +398,24 @@
       let img = this.images.get(index);
       if (img && img.complete && img.naturalWidth > 0) {
         if (this.currentFrameIndex === index) this.drawCover(img);
-        // If image is not loaded yet, we do NOTHING. The canvas simply retains 
-        // the last successfully drawn frame, completely saving CPU cycles.
+        return;
+      }
+      
+      // Fallback: search both backwards and forwards to find the absolute closest loaded frame
+      // This guarantees the canvas never freezes and stays as close to the scroll position as possible.
+      let offset = 1;
+      while (offset < 20) {
+        let prevImg = this.images.get(index - offset);
+        if (prevImg && prevImg.complete && prevImg.naturalWidth > 0) {
+          if (this.currentFrameIndex === index) this.drawCover(prevImg);
+          return;
+        }
+        let nextImg = this.images.get(index + offset);
+        if (nextImg && nextImg.complete && nextImg.naturalWidth > 0) {
+          if (this.currentFrameIndex === index) this.drawCover(nextImg);
+          return;
+        }
+        offset++;
       }
     }
 
@@ -582,9 +598,7 @@
           pin: true,
           start: 'top top',
           end: `+=${this.totalFrames * 4}`,
-          // Scrub: 0.5 creates a 500ms smooth interpolation. This masks network latency perfectly
-          // and ensures a silky cinematic scroll experience.
-          scrub: 0.5, 
+          scrub: true,
           onUpdate: (self) => {
             const progress = self.progress; 
             const calculatedFrame = Math.floor(progress * (this.totalFrames - 1)) + 1;
