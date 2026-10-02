@@ -17,7 +17,7 @@
       ]
     },
     {
-      "source": "/public/frames/(.*)",
+      "source": "/media/frames/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

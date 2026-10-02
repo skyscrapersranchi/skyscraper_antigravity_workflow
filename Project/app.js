@@ -8,7 +8,7 @@
 
   // --- CONFIGURATION & ASSET REGISTRY ---
   const TOTAL_FRAMES = 825;
-  const FRAME_BASE_PATH = 'public/frames/frame_';
+  const FRAME_BASE_PATH = 'media/frames/frame_';
   const FRAME_EXT = '.jpg';
   
   // High-Resolution Color Floor Plans (Verified from official architectural brochure)
@@ -17,28 +17,28 @@
       id: 'ground',
       title: 'Ground Floor & Entrance Layout',
       subtitle: 'Entrance threshold, vehicular circulation, lobby, 4 residential flats (1,320–1,496 sq.ft.)',
-      src: 'public/floorplans/floor_plan_page_1.jpg',
+      src: 'media/floorplans/floor_plan_page_1.jpg',
       badge: 'Level 00 (Ground)'
     },
     {
       id: 'typical_1_3_5',
       title: 'Typical 1st, 3rd & 5th Floor Plan',
       subtitle: '5 premium 3 BHK configurations (1,378–1,643 sq.ft. Super Built-Up Area)',
-      src: 'public/floorplans/floor_plan_page_2.jpg',
+      src: 'media/floorplans/floor_plan_page_2.jpg',
       badge: 'Levels 01, 03, 05'
     },
     {
       id: 'typical_2_4',
       title: 'Typical 2nd & 4th Floor Plan',
       subtitle: '5 premium 3 BHK units with extended private balcony & terrace orientations',
-      src: 'public/floorplans/floor_plan_page_3.jpg',
+      src: 'media/floorplans/floor_plan_page_3.jpg',
       badge: 'Levels 02, 04'
     },
     {
       id: 'basement',
       title: 'Basement & Stilt Parking Layout',
       subtitle: '26 dedicated car parking bays, two-wheeler bays, vehicular ramp & dual lift access',
-      src: 'public/floorplans/floor_plan_page_4.jpg',
+      src: 'media/floorplans/floor_plan_page_4.jpg',
       badge: 'Level -01 (Basement)'
     }
   ];
@@ -229,15 +229,23 @@
         dom.heroLoader.classList.add('hidden');
       }
     };
-    dom.heroVideo.addEventListener('playing', hideLoader, clickOpts);
-    dom.heroVideo.addEventListener('canplay', hideLoader, clickOpts);
-    dom.heroVideo.addEventListener('loadeddata', hideLoader, clickOpts);
+    
+    if (dom.heroVideo.readyState >= 3) {
+      hideLoader();
+    } else {
+      dom.heroVideo.addEventListener('playing', hideLoader, clickOpts);
+      dom.heroVideo.addEventListener('canplay', hideLoader, clickOpts);
+      dom.heroVideo.addEventListener('loadeddata', hideLoader, clickOpts);
+    }
     
     // Fallback: forcefully hide loader after 3 seconds so it never blocks the site
     setTimeout(hideLoader, 3000);
 
     // When film completes: seamlessly resolve into Brand Frame
-    dom.heroVideo.addEventListener('ended', () => {
+    let heroResolved = false;
+    const endHero = () => {
+      if (heroResolved) return;
+      heroResolved = true;
       if (dom.heroOverlay) dom.heroOverlay.classList.add('active');
       setTimeout(() => {
         if (dom.brandResolve) {
@@ -250,7 +258,14 @@
           triggerPostHeroCompliance();
         }
       }, 700);
-    }, clickOpts);
+    };
+
+    dom.heroVideo.addEventListener('ended', endHero, clickOpts);
+
+    // Safety fallback: if video fails to play or hangs, unblock the user experience after 8s
+    setTimeout(() => {
+      if (!heroResolved) endHero();
+    }, 8000);
 
     // Optimize CPU / GPU: Pause hero video when scrolled past hero
     const heroObserver = new IntersectionObserver(
@@ -290,38 +305,11 @@
       this.ctx = this.canvas.getContext('2d', { alpha: false });
       this.totalFrames = TOTAL_FRAMES;
       this.currentFrameIndex = 1;
-      this.targetFrameIndex = 1;
-      this.lastQueuedFrame = 1;
-      this.isRendering = false;
-      this.lastDrawnFrame = -1;
-      this.lastDrawnFallbackIndex = -1;
-      this.isPaused = false;
-      this.signal = signal;
+      this.images = new Map();
       this.activeSceneId = null;
+      this.isRendering = false;
+      this.pendingFetch = null;
 
-      // Metrics caching to prevent getBoundingClientRect() during scrolling
-      this.sectionTop = 0;
-      this.sectionScrollHeight = 0;
-
-      // Bound decoded frame window in RAM
-      const isMobile = window.innerWidth <= 768;
-      const deviceMem = (navigator.deviceMemory && navigator.deviceMemory < 4) || false;
-      this.maxDecodedWindow = isMobile || deviceMem ? 24 : 50;
-      this.decodedFrames = new Map(); // frameIndex -> ImageBitmap | HTMLImageElement
-
-      // Concurrency & Queues
-      this.maxDecodeConcurrency = 5;
-      this.activeDecodeFetches = 0;
-      this.decodeQueue = [];
-      this.enqueuedDecodeSet = new Set();
-
-      // Background HTTP cache warmer
-      this.maxPrefetchConcurrency = 4;
-      this.activePrefetches = 0;
-      this.prefetchQueue = [];
-      this.prefetchedSet = new Set();
-
-      // Pre-allocated bounds to prevent per-frame garbage collection / allocation
       this._bounds = {
         drawWidth: 0,
         drawHeight: 0,
@@ -340,149 +328,18 @@
       return `${FRAME_BASE_PATH}${this.formatFrameNum(index)}${FRAME_EXT}`;
     }
 
-    updateSectionMetrics() {
-      if (!dom.archSection) return;
-      const rect = dom.archSection.getBoundingClientRect();
-      this.sectionTop = rect.top + window.scrollY;
-      this.sectionScrollHeight = dom.archSection.offsetHeight - window.innerHeight;
-    }
-
-    fetchAndDecode(index) {
-      const path = this.getFramePath(index);
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = path;
-        if (typeof img.decode === 'function') {
-          img.decode().then(() => resolve(img)).catch(() => {
-            img.onload = () => resolve(img);
-            img.onerror = () => resolve(null);
-          });
-        } else {
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-        }
-      });
-    }
-
-    pumpDecodeQueue() {
-      while (this.activeDecodeFetches < this.maxDecodeConcurrency && this.decodeQueue.length > 0) {
-        const index = this.decodeQueue.shift();
-        this.enqueuedDecodeSet.delete(index);
-
-        if (this.decodedFrames.has(index)) {
-          continue;
-        }
-
-        this.activeDecodeFetches++;
-        this.fetchAndDecode(index).then((decoded) => {
-          this.activeDecodeFetches--;
-          if (decoded) {
-            this.prefetchedSet.add(index);
-            this.decodedFrames.set(index, decoded);
-            this.pruneDecodedFrames();
-
-            // If we are currently at this frame and waiting for it, render immediately
-            const currentRounded = Math.round(this.currentFrameIndex);
-            if (currentRounded === index && this.lastDrawnFrame !== index) {
-              this.renderFrame(index);
-            }
-          }
-          this.pumpDecodeQueue();
-        }).catch(() => {
-          this.activeDecodeFetches--;
-          this.pumpDecodeQueue();
-        });
-      }
-    }
-
-    pruneDecodedFrames() {
-      if (this.decodedFrames.size <= this.maxDecodedWindow + 10) return;
-
-      const center = Math.round(this.currentFrameIndex);
-      const halfWindow = Math.round(this.maxDecodedWindow / 2);
-
-      for (const [idx, frame] of this.decodedFrames.entries()) {
-        if (Math.abs(idx - center) > halfWindow + 8) {
-          if (frame && typeof frame.close === 'function') {
-            frame.close();
-          }
-          this.decodedFrames.delete(idx);
-        }
-      }
-    }
-
-    queueNeighborFrames(centerIndex, isForwardHint = null) {
-      const isForward = isForwardHint !== null ? isForwardHint : (this.targetFrameIndex >= this.currentFrameIndex);
-      const windowForward = isForward ? 35 : 15;
-      const windowBack = isForward ? 12 : 25;
-
-      const priorityList = [];
-      if (isForward) {
-        for (let i = centerIndex; i <= Math.min(this.totalFrames, centerIndex + windowForward); i++) {
-          priorityList.push(i);
-        }
-        for (let i = centerIndex - 1; i >= Math.max(1, centerIndex - windowBack); i--) {
-          priorityList.push(i);
-        }
-      } else {
-        for (let i = centerIndex; i >= Math.max(1, centerIndex - windowBack); i--) {
-          priorityList.push(i);
-        }
-        for (let i = centerIndex + 1; i <= Math.min(this.totalFrames, centerIndex + windowForward); i++) {
-          priorityList.push(i);
-        }
-      }
-
-      // Keep decode queue tightly focused on the immediate viewport window
-      this.decodeQueue = priorityList.filter((idx) => !this.decodedFrames.has(idx));
-      this.enqueuedDecodeSet = new Set(this.decodeQueue);
-      this.pumpDecodeQueue();
-    }
-
-    // Warm compressed files into HTTP cache with low priority
-    pumpPrefetchQueue() {
-      while (this.activePrefetches < this.maxPrefetchConcurrency && this.prefetchQueue.length > 0) {
-        const index = this.prefetchQueue.shift();
-        if (this.prefetchedSet.has(index) || this.decodedFrames.has(index)) {
-          continue;
-        }
-
-        this.activePrefetches++;
-        const path = this.getFramePath(index);
-        fetch(path, { priority: 'low' }).then(() => {
-          this.prefetchedSet.add(index);
-          this.activePrefetches--;
-          this.pumpPrefetchQueue();
-        }).catch(() => {
-          this.activePrefetches--;
-          this.pumpPrefetchQueue();
-        });
-      }
-    }
-
-    startBackgroundPreload() {
-      // In scroll order from 1 to TOTAL_FRAMES right after first paint
-      const allFrames = [];
-      for (let i = 1; i <= this.totalFrames; i++) {
-        if (!this.prefetchedSet.has(i) && !this.decodedFrames.has(i)) {
-          allFrames.push(i);
-        }
-      }
-      this.prefetchQueue = allFrames;
-      this.pumpPrefetchQueue();
-    }
-
     resize() {
-      if (!this.canvas || !this.canvas.parentElement) return;
-      const rect = this.canvas.parentElement.getBoundingClientRect();
+      if (!this.canvas) return;
+      
+      // Clear inline width/height so CSS bounding rules (like max-height) apply
+      this.canvas.style.width = '';
+      this.canvas.style.height = '';
+      
+      const rect = this.canvas.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      this.width = rect.width;
-      this.height = rect.height;
-      this.updateSectionMetrics();
-
-      const targetCanvasWidth = Math.floor(rect.width * dpr);
-      const targetCanvasHeight = Math.floor(rect.height * dpr);
+      const targetCanvasWidth = Math.max(1, Math.floor(rect.width * dpr));
+      const targetCanvasHeight = Math.max(1, Math.floor(rect.height * dpr));
 
       if (this.canvas.width !== targetCanvasWidth || this.canvas.height !== targetCanvasHeight) {
         this.canvas.width = targetCanvasWidth;
@@ -493,52 +350,12 @@
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
-
-        this.lastDrawnFrame = -1;
-        this.lastDrawnFallbackIndex = -1;
       }
 
-      this.renderFrame(Math.round(this.currentFrameIndex));
-    }
-
-    renderFrame(frameIndex) {
-      // Redraw ONLY when computed frame index changes
-      if (frameIndex === this.lastDrawnFrame) {
-        return;
-      }
-
-      const img = this.decodedFrames.get(frameIndex);
-      if (!img) {
-        // Fallback: search closest cached neighbor frame (maintains today's exact fallback behavior)
-        let fallback = null;
-        let fallbackIndex = -1;
-        for (let dist = 1; dist < 40; dist++) {
-          if (this.decodedFrames.has(frameIndex - dist)) {
-            fallbackIndex = frameIndex - dist;
-            fallback = this.decodedFrames.get(fallbackIndex);
-            break;
-          } else if (this.decodedFrames.has(frameIndex + dist)) {
-            fallbackIndex = frameIndex + dist;
-            fallback = this.decodedFrames.get(fallbackIndex);
-            break;
-          }
-        }
-        if (fallback) {
-          if (this.lastDrawnFallbackIndex !== fallbackIndex) {
-            this.drawCover(fallback);
-            this.lastDrawnFallbackIndex = fallbackIndex;
-          }
-        }
-        return;
-      }
-
-      this.drawCover(img);
-      this.lastDrawnFrame = frameIndex;
-      this.lastDrawnFallbackIndex = -1;
+      this.renderFrame(this.currentFrameIndex);
     }
 
     drawCover(img) {
-      // Zero per-frame allocations: reuse pre-allocated this._bounds coordinates
       const cWidth = this.canvas.width;
       const cHeight = this.canvas.height;
       const iWidth = img.naturalWidth || img.width;
@@ -568,6 +385,49 @@
         Math.round(this._bounds.drawWidth),
         Math.round(this._bounds.drawHeight)
       );
+    }
+
+    renderFrame(frameIndex) {
+      const index = Math.max(1, Math.min(this.totalFrames, frameIndex));
+      
+      let img = this.images.get(index);
+      if (img && img.complete && img.naturalWidth > 0) {
+        if (this.currentFrameIndex === index) this.drawCover(img);
+        this.updatePhase(index);
+        return;
+      }
+      
+      // Update UI phase text immediately
+      this.updatePhase(index);
+      
+      // Cancel previous pending fetch if it's for a different frame
+      if (this.pendingFetch) {
+        this.pendingFetch.abort();
+        this.pendingFetch = null;
+      }
+
+      this.pendingFetch = new AbortController();
+      const signal = this.pendingFetch.signal;
+
+      fetch(this.getFramePath(index), { signal })
+        .then((res) => {
+          if (!res.ok) throw new Error('Network error');
+          return res.blob();
+        })
+        .then((blob) => {
+          const objectUrl = URL.createObjectURL(blob);
+          const newImg = new Image();
+          newImg.onload = () => {
+            this.images.set(index, newImg);
+            if (this.currentFrameIndex === index) {
+              this.drawCover(newImg);
+            }
+          };
+          newImg.src = objectUrl;
+        })
+        .catch((err) => {
+          // Ignore abort errors
+        });
     }
 
     updatePhase(frameIndex) {
@@ -627,26 +487,22 @@
     }
 
     destroy() {
-      this.isPaused = true;
-      this.isRendering = false;
-
       if (this.scrollTrigger) {
         this.scrollTrigger.kill();
       }
-
       if (this.resizeObserver) {
         this.resizeObserver.disconnect();
       }
-      
-      this.decodedFrames.clear();
-      this.prefetchedSet.clear();
-      this.enqueuedDecodeSet.clear();
-      this.decodeQueue = [];
-      this.prefetchQueue = [];
+      this.images.clear();
     }
 
     init() {
-      this.isPaused = false;
+      // Load only the first frame immediately
+      const firstImg = new Image();
+      firstImg.src = this.getFramePath(1);
+      this.images.set(1, firstImg);
+      firstImg.onload = () => this.renderFrame(1);
+
       this.resize();
 
       if ('ResizeObserver' in window && this.canvas.parentElement) {
@@ -658,52 +514,33 @@
         this.resizeObserver.observe(this.canvas.parentElement);
       }
 
-      requestAnimationFrame(() => {
-        this.queueNeighborFrames(1);
-        setTimeout(() => {
-          this.startBackgroundPreload();
-        }, 120);
-      });
-
-      // Initialize GSAP ScrollTrigger to precisely map scroll progress to frames
       if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && dom.archSection) {
         gsap.registerPlugin(ScrollTrigger);
         
-        this.hasInitialRender = false;
-        const stickyEl = document.querySelector('.arch-scroll__sticky');
-        
         this.scrollTrigger = ScrollTrigger.create({
-          trigger: stickyEl || dom.archSection,
+          trigger: dom.archSection,
           pin: true,
           start: 'top top',
           end: `+=${this.totalFrames * 4}`, // 3300px scrub distance
           scrub: true,
           onUpdate: (self) => {
-            if (this.isPaused) return;
             const progress = self.progress; // 0 to 1
             const calculatedFrame = Math.floor(progress * (this.totalFrames - 1)) + 1;
-            this.targetFrameIndex = calculatedFrame;
             
-            if (calculatedFrame !== this.currentFrameIndex || !this.hasInitialRender) {
-              const isScrollingForward = calculatedFrame >= this.currentFrameIndex;
-              this.hasInitialRender = true;
+            if (calculatedFrame !== this.currentFrameIndex) {
               this.currentFrameIndex = calculatedFrame;
-              
-              if (Math.abs(this.currentFrameIndex - this.lastQueuedFrame) >= 2) {
-                this.lastQueuedFrame = this.currentFrameIndex;
-                this.queueNeighborFrames(this.currentFrameIndex, isScrollingForward);
+              if (!this.isRendering) {
+                this.isRendering = true;
+                requestAnimationFrame(() => {
+                  this.renderFrame(this.currentFrameIndex);
+                  this.isRendering = false;
+                });
               }
-              
-              requestAnimationFrame(() => {
-                this.renderFrame(this.currentFrameIndex);
-                this.updatePhase(this.currentFrameIndex);
-              });
             }
           }
         });
       }
     }
-
   }
 
   // ============================================================
@@ -2105,6 +1942,7 @@
       const brandObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            revealBrandElements();
             triggerPostHeroCompliance();
             brandObserver.disconnect();
           }
