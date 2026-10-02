@@ -400,8 +400,8 @@
         if (this.currentFrameIndex === index) this.drawCover(img);
         return;
       }
-      // Fallback: If not preloaded yet, do not fire a new request that clogs the network.
-      // Instead, find the closest previously loaded frame and draw it so the user never sees a blank/stuck screen.
+      
+      // Fallback: search backwards to find the closest loaded frame
       let fallbackIndex = index - 1;
       while (fallbackIndex > 0) {
         let fbImg = this.images.get(fallbackIndex);
@@ -482,42 +482,87 @@
     }
 
     preloadFrames() {
-      // Preload frames in background sequentially to ensure smooth scrubbing
-      const maxConcurrent = 6;
-      let activeRequests = 0;
-      let targetIndex = 2; // Frame 1 is loaded in init
+      // Hybrid Priority + Sequential Preloader for butter smooth scrubbing
+      const MAX_TOTAL = 6;
+      const MAX_SEQ = 3; 
+      let activeTotal = 0;
+      let activeSeq = 0;
+      let targetIndex = 2;
+
+      this.loading = new Set();
+      this.priorityQueue = [];
 
       const loadNext = () => {
-        while (activeRequests < maxConcurrent && targetIndex <= this.totalFrames) {
-          const indexToLoad = targetIndex++;
-          
-          if (this.images.has(indexToLoad)) {
-            continue;
+        while (activeTotal < MAX_TOTAL) {
+          let indexToLoad = null;
+          let isPriority = false;
+
+          // 1. Drain priority queue (up to MAX_TOTAL)
+          while (this.priorityQueue.length > 0) {
+            const pIndex = this.priorityQueue.shift();
+            if (!this.images.has(pIndex) && !this.loading.has(pIndex) && pIndex <= this.totalFrames) {
+              indexToLoad = pIndex;
+              isPriority = true;
+              break;
+            }
           }
 
-          activeRequests++;
+          // 2. Fallback to sequential (limited to MAX_SEQ so priority always has free connections)
+          if (indexToLoad === null && activeSeq < MAX_SEQ && targetIndex <= this.totalFrames) {
+            while (targetIndex <= this.totalFrames) {
+              const sIndex = targetIndex++;
+              if (!this.images.has(sIndex) && !this.loading.has(sIndex)) {
+                indexToLoad = sIndex;
+                break;
+              }
+            }
+          }
+
+          if (indexToLoad === null) return;
+
+          activeTotal++;
+          if (!isPriority) activeSeq++;
+          this.loading.add(indexToLoad);
+          
           const img = new Image();
+          if ('decoding' in img) img.decoding = 'async'; // Off-thread decoding
+          
           img.onload = () => {
             this.images.set(indexToLoad, img);
-            activeRequests--;
+            this.loading.delete(indexToLoad);
+            activeTotal--;
+            if (!isPriority) activeSeq--;
+            
+            // Immediately render if user is waiting for this exact frame
+            if (Math.abs(this.currentFrameIndex - indexToLoad) <= 1) {
+              if (!this.isRendering) {
+                this.isRendering = true;
+                requestAnimationFrame(() => {
+                  this.renderFrame(this.currentFrameIndex);
+                  this.isRendering = false;
+                });
+              }
+            }
             loadNext();
           };
           img.onerror = () => {
-            activeRequests--;
+            this.loading.delete(indexToLoad);
+            activeTotal--;
+            if (!isPriority) activeSeq--;
             loadNext();
           };
           img.src = this.getFramePath(indexToLoad);
         }
       };
 
-      // Start preloading gracefully without blocking the main hero load
+      this.triggerPreload = loadNext;
+
       setTimeout(() => {
         loadNext();
-      }, 500);
+      }, 200);
     }
 
     init() {
-      // Load only the first frame immediately
       const firstImg = new Image();
       firstImg.src = this.getFramePath(1);
       this.images.set(1, firstImg);
@@ -544,14 +589,27 @@
           trigger: dom.archSection,
           pin: true,
           start: 'top top',
-          end: `+=${this.totalFrames * 4}`, // 3300px scrub distance
+          end: `+=${this.totalFrames * 4}`,
           scrub: true,
           onUpdate: (self) => {
-            const progress = self.progress; // 0 to 1
+            const progress = self.progress; 
             const calculatedFrame = Math.floor(progress * (this.totalFrames - 1)) + 1;
             
             if (calculatedFrame !== this.currentFrameIndex) {
+              const scrollDir = calculatedFrame > this.currentFrameIndex ? 1 : -1;
               this.currentFrameIndex = calculatedFrame;
+              
+              if (this.priorityQueue) {
+                this.priorityQueue.length = 0; // Clear stale priority frames
+                for (let i = 0; i <= 6; i++) {
+                   const f = calculatedFrame + (i * scrollDir);
+                   if (f > 0 && f <= this.totalFrames) {
+                       this.priorityQueue.push(f);
+                   }
+                }
+                if (this.triggerPreload) this.triggerPreload();
+              }
+
               if (!this.isRendering) {
                 this.isRendering = true;
                 requestAnimationFrame(() => {
