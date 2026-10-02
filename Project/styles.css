@@ -8,24 +8,24 @@
 
 /* --- CUSTOM PROPERTIES --- */
 :root {
-  /* Palette — Modern Architectural Luxury (Dark Charcoal + Champagne Gold 5%) */
-  --black: #0c0d0e;              /* Deep charcoal / near-black */
+  /* Palette — Modern Architectural Luxury (Dark Charcoal + Premium Bronze/Champagne) */
+  --black: #08090a;              /* Deep charcoal / near-black */
   --charcoal-deep: #0e0f11;      /* Architectural abyss */
   --charcoal: #141618;           /* Graphite deep */
   --charcoal-light: #202326;     /* Graphite secondary surface */
   --graphite: #181a1d;           /* Deep graphite */
   --stone: #2c2f33;              /* Muted dark stone */
-  --warm-gray: #a69f95;          /* Warm muted grey */
-  --paper: #f5f2eb;              /* Warm ivory / soft beige */
-  --paper-light: #faf8f4;        /* Pristine warm ivory */
-  --off-white: #f5f2eb;
+  --warm-gray: #a19d96;          /* Warm muted grey */
+  --paper: #f2f0ea;              /* Warm ivory / soft beige */
+  --paper-light: #f8f7f4;        /* Pristine warm ivory */
+  --off-white: #f2f0ea;
   --white: #ffffff;
-  --accent-gold: #c8a86b;        /* Champagne gold (5% accent) */
-  --accent-gold-hover: #d8bb80;  /* Slightly brighter gold for hover states */
-  --accent-gold-muted: #9c8454;  /* Muted bronze */
-  --accent-gold-light: #dfceb1;  /* Soft champagne */
-  --accent-gold-glow: rgba(200, 168, 107, 0.18);
-  --border-subtle: rgba(212, 201, 180, 0.12);
+  --accent-gold: #c6a371;        /* Rich architectural bronze/gold */
+  --accent-gold-hover: #d5b588;  /* Brighter gold for hover states */
+  --accent-gold-muted: #8b744d;  /* Muted bronze */
+  --accent-gold-light: #e6d8c0;  /* Soft champagne */
+  --accent-gold-glow: rgba(198, 163, 113, 0.18);
+  --border-subtle: rgba(198, 163, 113, 0.12);
   --border-medium: rgba(212, 201, 180, 0.22);
   --error: #c45c4a;
   --success: #6b8f71;
@@ -377,10 +377,18 @@ ul, ol {
   padding: var(--space-sm) var(--gutter);
 }
 
+.nav__brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .nav__logo {
-  height: 24px;
+  height: 32px;
   width: auto;
-  opacity: 0.9;
+  max-width: 100%;
+  object-fit: contain;
+  opacity: 0.95;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
@@ -1024,9 +1032,9 @@ ul, ol {
   pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba(10, 10, 10, 0.88) 0%,
-    rgba(10, 10, 10, 0.35) 40%,
-    transparent 70%
+    rgba(10, 10, 10, 0.60) 0%,
+    rgba(10, 10, 10, 0.25) 30%,
+    transparent 60%
   );
   z-index: 2;
 }
@@ -2803,8 +2811,9 @@ ul, ol {
   }
 
   .nav__logo {
-    height: 20px;
+    height: 26px; /* Properly visible without being squished on mobile */
     width: auto;
+    object-fit: contain;
   }
 
   .nav__links {

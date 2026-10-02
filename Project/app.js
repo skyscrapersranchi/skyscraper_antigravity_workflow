@@ -396,16 +396,19 @@
         if (this.currentFrameIndex === index) this.drawCover(img);
         return;
       }
-      
-      // Fallback: If not preloaded yet, fetch immediately via standard Image
-      const fallbackImg = new Image();
-      fallbackImg.onload = () => {
-        this.images.set(index, fallbackImg);
-        if (this.currentFrameIndex === index) {
-          this.drawCover(fallbackImg);
+      // Fallback: If not preloaded yet, do not fire a new request that clogs the network.
+      // Instead, find the closest previously loaded frame and draw it so the user never sees a blank/stuck screen.
+      let fallbackIndex = index - 1;
+      while (fallbackIndex > 0) {
+        let fbImg = this.images.get(fallbackIndex);
+        if (fbImg && fbImg.complete && fbImg.naturalWidth > 0) {
+          if (this.currentFrameIndex === index) {
+            this.drawCover(fbImg);
+          }
+          break;
         }
-      };
-      fallbackImg.src = this.getFramePath(index);
+        fallbackIndex--;
+      }
     }
 
     updatePhase(frameIndex) {
