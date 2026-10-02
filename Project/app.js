@@ -482,54 +482,27 @@
     }
 
     preloadFrames() {
-      // Dynamic priority preloader based on currentFrameIndex
+      // Preload frames in background sequentially to ensure smooth scrubbing
       const maxConcurrent = 6;
       let activeRequests = 0;
+      let targetIndex = 2; // Frame 1 is loaded in init
 
       const loadNext = () => {
-        while (activeRequests < maxConcurrent) {
-          let indexToLoad = null;
+        while (activeRequests < maxConcurrent && targetIndex <= this.totalFrames) {
+          const indexToLoad = targetIndex++;
           
-          // Lookahead window: try to load frames immediately around current scroll
-          for (let offset = 0; offset <= 30; offset++) {
-            const idx = this.currentFrameIndex + offset;
-            if (idx > 0 && idx <= this.totalFrames && !this.images.has(idx) && !this.loading.has(idx)) {
-              indexToLoad = idx;
-              break;
-            }
+          if (this.images.has(indexToLoad)) {
+            continue;
           }
-          // If forward lookahead is complete, buffer slightly behind
-          if (!indexToLoad) {
-            for (let offset = -1; offset >= -10; offset--) {
-              const idx = this.currentFrameIndex + offset;
-              if (idx > 0 && idx <= this.totalFrames && !this.images.has(idx) && !this.loading.has(idx)) {
-                indexToLoad = idx;
-                break;
-              }
-            }
-          }
-
-          if (indexToLoad === null) return; // Nothing urgent to load
 
           activeRequests++;
-          this.loading.add(indexToLoad);
-          
           const img = new Image();
           img.onload = () => {
             this.images.set(indexToLoad, img);
-            this.loading.delete(indexToLoad);
             activeRequests--;
-            
-            // If the user is waiting for this exact frame or very close to it, re-render
-            if (Math.abs(this.currentFrameIndex - indexToLoad) <= 2) {
-              if (!this.isRendering) {
-                this.renderFrame(this.currentFrameIndex);
-              }
-            }
             loadNext();
           };
           img.onerror = () => {
-            this.loading.delete(indexToLoad);
             activeRequests--;
             loadNext();
           };
@@ -537,11 +510,10 @@
         }
       };
 
-      // Trigger loadNext now
-      loadNext();
-      
-      // Save it so it can be re-triggered from onUpdate
-      this.triggerPreload = loadNext;
+      // Start preloading gracefully without blocking the main hero load
+      setTimeout(() => {
+        loadNext();
+      }, 500);
     }
 
     init() {
@@ -580,9 +552,6 @@
             
             if (calculatedFrame !== this.currentFrameIndex) {
               this.currentFrameIndex = calculatedFrame;
-              if (this.triggerPreload) {
-                this.triggerPreload();
-              }
               if (!this.isRendering) {
                 this.isRendering = true;
                 requestAnimationFrame(() => {
@@ -2048,9 +2017,10 @@
   function initLocationMap() {
     const mapLink = document.getElementById('locationMapLink');
     if (mapLink) {
-      // Changed from lat/lng to exact address for accurate map pin
-      const address = "Deonarayan Estate, Behind St. Stephen School, New Bus Stand, Forest Colony, Hazaribagh - 825301, Jharkhand, India";
-      mapLink.href = `https://maps.google.com/?q=${encodeURIComponent(address)}`;
+      // Hazaribagh exact coordinates
+      const lat = 23.9925;
+      const lng = 85.3637;
+      mapLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     }
   }
 
