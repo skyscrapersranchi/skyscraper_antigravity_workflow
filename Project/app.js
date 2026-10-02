@@ -398,20 +398,8 @@
       let img = this.images.get(index);
       if (img && img.complete && img.naturalWidth > 0) {
         if (this.currentFrameIndex === index) this.drawCover(img);
-        return;
-      }
-      
-      // Fallback: search backwards to find the closest loaded frame
-      let fallbackIndex = index - 1;
-      while (fallbackIndex > 0) {
-        let fbImg = this.images.get(fallbackIndex);
-        if (fbImg && fbImg.complete && fbImg.naturalWidth > 0) {
-          if (this.currentFrameIndex === index) {
-            this.drawCover(fbImg);
-          }
-          break;
-        }
-        fallbackIndex--;
+        // If image is not loaded yet, we do NOTHING. The canvas simply retains 
+        // the last successfully drawn frame, completely saving CPU cycles.
       }
     }
 
@@ -484,7 +472,8 @@
     preloadFrames() {
       // Hybrid Priority + Sequential Preloader for butter smooth scrubbing
       const MAX_TOTAL = 6;
-      const MAX_SEQ = 3; 
+      // Reduce sequential loading to 2 to ensure we don't block normal website images
+      const MAX_SEQ = 2; 
       let activeTotal = 0;
       let activeSeq = 0;
       let targetIndex = 2;
@@ -534,7 +523,7 @@
             if (!isPriority) activeSeq--;
             
             // Immediately render if user is waiting for this exact frame
-            if (Math.abs(this.currentFrameIndex - indexToLoad) <= 1) {
+            if (Math.abs(this.currentFrameIndex - indexToLoad) <= 2) {
               if (!this.isRendering) {
                 this.isRendering = true;
                 requestAnimationFrame(() => {
@@ -557,9 +546,12 @@
 
       this.triggerPreload = loadNext;
 
-      setTimeout(() => {
-        loadNext();
-      }, 200);
+      // DELAY PRELOADING entirely until the rest of the page (hero, logo, etc) finishes loading!
+      if (document.readyState === 'complete') {
+        setTimeout(loadNext, 500);
+      } else {
+        window.addEventListener('load', () => setTimeout(loadNext, 500));
+      }
     }
 
     init() {
@@ -590,7 +582,9 @@
           pin: true,
           start: 'top top',
           end: `+=${this.totalFrames * 4}`,
-          scrub: true,
+          // Scrub: 0.5 creates a 500ms smooth interpolation. This masks network latency perfectly
+          // and ensures a silky cinematic scroll experience.
+          scrub: 0.5, 
           onUpdate: (self) => {
             const progress = self.progress; 
             const calculatedFrame = Math.floor(progress * (this.totalFrames - 1)) + 1;
